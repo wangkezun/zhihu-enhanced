@@ -322,14 +322,18 @@ function menu_switch(menu_status, Name, Tips) {
     ) {
       //    首页 //
       switchHomeRecommend();
-      document.lastElementChild.appendChild(
-        document.createElement("style"),
-      ).textContent = ".Topstory-container {min-height: 1500px;}";
-      if (menu_value("menu_blockTypeVideo"))
-        document.lastChild.appendChild(
+      let style = "";
+      if (location.pathname !== "/column-square") {
+        style += ".Topstory-container {min-height: 1500px;}";
+      }
+      if (menu_value("menu_blockTypeVideo")) {
+        style += `.Card .ZVideoItem-video, nav.TopstoryTabs > a[aria-controls="Topstory-zvideo"] {display: none !important;}`;
+      }
+      if (style) {
+        document.lastElementChild.appendChild(
           document.createElement("style"),
-        ).textContent =
-          `.Card .ZVideoItem-video, nav.TopstoryTabs > a[aria-controls="Topstory-zvideo"] {display: none !important;}`;
+        ).textContent = style;
+      }
 
       collapsedNowAnswer("main div");
       collapsedNowAnswer(".Topstory-container");

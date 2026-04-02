@@ -168,8 +168,6 @@ export function blockType(type) {
         // 如果是想法（针对无标题）
         if (menu_value("menu_blockTypePin"))
           titleA.closest(".Card.TopstoryItem.TopstoryItem-isRecommend").hidden = true;
-        /*} else if (titleA.href.includes('/pin/')) { // 如果是想法
-                if (menu_value('menu_blockTypePin')) findParentElement(titleA, 'Card TopstoryItem TopstoryItem-isRecommend').hidden = true;*/
       } else if (
         titleA.href.includes("/zvideo/") ||
         titleA.href.includes("video.zhihu.com")

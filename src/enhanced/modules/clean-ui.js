@@ -46,28 +46,28 @@ export function removeLogin() {
     }
   };
 
-  // 未登录时才会监听并移除登录弹窗
-  if (location.hostname === "zhuanlan.zhihu.com") {
-    // 如果是文章页
-    if (!document.querySelector(".ColumnPageHeader-profile>.AppHeader-menu")) {
-      // 未登录
-      GlobalObserver.add(removeLoginModal);
-      if (getXpath('//button[text()="登录/注册"]'))
-        getXpath('//button[text()="登录/注册"]').outerHTML =
-          '<a class="Button AppHeader-login Button--blue" href="https://www.zhihu.com/signin" target="_blank">登录/注册</a>'; // [登录] 按钮跳转至登录页面
+  // 检查是否登录
+  function isLoggedIn() {
+    if (location.hostname === "zhuanlan.zhihu.com") {
+      return !!document.querySelector(".ColumnPageHeader-profile>.AppHeader-menu");
     }
-  } else {
-    // 不是文章页
-    if (!document.querySelector(".AppHeader-profile>.AppHeader-menu")) {
-      // 未登录
-      GlobalObserver.add(removeLoginModal);
+    return !!document.querySelector(".AppHeader-profile>.AppHeader-menu");
+  }
+
+  // 未登录时才会监听并移除登录弹窗
+  if (!isLoggedIn()) {
+    GlobalObserver.add(removeLoginModal);
+    const loginButton = getXpath('//button[text()="登录/注册"]');
+    if (loginButton) {
+      loginButton.outerHTML =
+        '<a class="Button AppHeader-login Button--blue" href="https://www.zhihu.com/signin" target="_blank">登录/注册</a>';
+    }
+    if (location.hostname !== "zhuanlan.zhihu.com") {
+      // 屏蔽问题页中间的登录提示
       document.lastElementChild.appendChild(
         document.createElement("style"),
       ).textContent =
-        ".Question-mainColumnLogin, button.AppHeader-login {display: none !important;}"; // 屏蔽问题页中间的登录提示
-      if (getXpath('//button[text()="登录/注册"]'))
-        getXpath('//button[text()="登录/注册"]').outerHTML =
-          '<a class="Button AppHeader-login Button--blue" href="https://www.zhihu.com/signin" target="_blank">登录/注册</a>'; // [登录] 按钮跳转至登录页面
+        ".Question-mainColumnLogin, button.AppHeader-login {display: none !important;}";
     }
   }
 }
@@ -88,23 +88,6 @@ export function cleanTitles() {
   });
   observer.observe(elTitle, { childList: true });
 
-  // 方案二
-  // if (Reflect.getOwnPropertyDescriptor(document, 'title')) {
-  //     const elTitle = document.head.querySelector('title');
-  //     const original = elTitle.textContent;
-  //     const observer = new MutationObserver(function() {
-  //         if (elTitle.textContent != original) { // 避免重复执行
-  //             elTitle.textContent = original;
-  //         }
-  //     });
-  //     observer.observe(elTitle, { childList: true });
-  // } else {
-  //     const title = document.title;
-  //     Reflect.defineProperty(document, 'title', {
-  //         set: () => {},
-  //         get: () => title,
-  //     });
-  // }
 }
 
 // 净化搜索热门
@@ -148,15 +131,5 @@ export function closeFloatingComments() {
   };
   GlobalObserver.add(closeFloatingCommentsModal);
 }
-
-// 监听 XMLHttpRequest 事件
-/*function EventXMLHttpRequest() {
-    var _send = window.XMLHttpRequest.prototype.send
-    function sendReplacement(data) {
-        addTypeTips();
-        return _send.apply(this, arguments);
-    }
-    window.XMLHttpRequest.prototype.send = sendReplacement;
-}*/
 
 // 自定义 urlchange 事件（用来监听 URL 变化）

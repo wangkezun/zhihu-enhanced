@@ -38,7 +38,7 @@ export function rememberSelectedBlockKeyword() {
   };
   document.addEventListener("selectionchange", updateSelectedBlockKeyword);
   document.addEventListener("contextmenu", updateSelectedBlockKeyword, true);
-  UrlChangeManager.add(function () {
+  UrlChangeManager.addScoped(function () {
     selectedTextForBlockKeywords = "";
   });
 }
@@ -95,7 +95,7 @@ export function customBlockKeywords() {
   });
   let newBlockKeywords = prompt(
     '编辑 [自定义屏蔽关键词]\n（不同关键词之间使用 "|" 分隔，例如：关键词A|关键词B|关键词C \n（关键词不区分大小写，支持表情如：[捂脸]|[飙泪笑]',
-    nowBlockKeywords.replace("|", ""),
+    nowBlockKeywords.slice(1),
   );
   if (newBlockKeywords === "") {
     GM_setValue("menu_customBlockKeywords", []);
@@ -183,7 +183,7 @@ export function blockKeywords(type) {
     }
 
     setTimeout(blockKeywords_now, 2000);
-    UrlChangeManager.add(function () {
+    UrlChangeManager.addScoped(function () {
       setTimeout(blockKeywords_now, 1000); // 网页 URL 变化后再次执行
     });
 
@@ -206,7 +206,7 @@ export function blockKeywords(type) {
         }
       }
     };
-    GlobalObserver.add(callback);
+    GlobalObserver.addScoped(callback);
   }
 
   function blockKeywords_comment() {
@@ -266,7 +266,7 @@ export function blockKeywords(type) {
         }
       }
     };
-    GlobalObserver.add(callback);
+    GlobalObserver.addScoped(callback);
   }
 
   function blockKeywords_1(item1, css) {

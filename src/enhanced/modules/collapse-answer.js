@@ -3,62 +3,68 @@ import { UrlChangeManager } from '../../shared/url-change.js';
 import { menu_value } from '../../shared/menu-framework.js';
 import { isElementInViewport, isElementInViewport_, getXpath } from '../../shared/dom-utils.js';
 
-export function getCollapsedAnswerObserver() {
-  if (!window._collapsedAnswerObserver) {
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.target.hasAttribute("script-collapsed")) return;
-        // 短的回答
-        if (mutation.target.classList.contains("RichContent")) {
-          for (const addedNode of mutation.addedNodes) {
-            if (addedNode.nodeType != Node.ELEMENT_NODE) continue;
-            if (addedNode.className != "RichContent-inner") continue;
-            if (addedNode.offsetHeight < 400) break;
-            const button = mutation.target.querySelector(
-              ".ContentItem-actions.Sticky [data-zop-retract-question]",
-            );
-            if (button) {
-              mutation.target.setAttribute("script-collapsed", "");
-              button.click();
-              return;
-            }
-          }
-          // 长的回答
-        } else if (
-          mutation.target.tagName === "DIV" &&
-          !mutation.target.style.cssText &&
-          !mutation.target.className
-        ) {
-          if (mutation.target.parentElement.hasAttribute("script-collapsed"))
-            return;
-          const button = mutation.target.querySelector(
-            ".ContentItem-actions.Sticky [data-zop-retract-question]",
-          );
-          if (button) {
-            mutation.target.parentElement.setAttribute("script-collapsed", "");
-            button.click();
-            return;
-          }
+// 默认收起回答的 handler（复用 GlobalObserver，避免创建第二个全局 subtree observer）
+function collapsedAnswerHandler(mutations) {
+  for (const mutation of mutations) {
+    if (mutation.target.hasAttribute("script-collapsed")) return;
+    // 短的回答
+    if (mutation.target.classList.contains("RichContent")) {
+      for (const addedNode of mutation.addedNodes) {
+        if (addedNode.nodeType != Node.ELEMENT_NODE) continue;
+        if (addedNode.className != "RichContent-inner") continue;
+        if (addedNode.offsetHeight < 400) break;
+        const button = mutation.target.querySelector(
+          ".ContentItem-actions.Sticky [data-zop-retract-question]",
+        );
+        if (button) {
+          mutation.target.setAttribute("script-collapsed", "");
+          button.click();
+          return;
         }
       }
-    });
-
-    observer.start = function () {
-      if (!this._active) {
-        this.observe(document, { childList: true, subtree: true });
-        this._active = true;
+      // 长的回答
+    } else if (
+      mutation.target.tagName === "DIV" &&
+      !mutation.target.style.cssText &&
+      !mutation.target.className
+    ) {
+      if (mutation.target.parentElement.hasAttribute("script-collapsed"))
+        return;
+      const button = mutation.target.querySelector(
+        ".ContentItem-actions.Sticky [data-zop-retract-question]",
+      );
+      if (button) {
+        mutation.target.parentElement.setAttribute("script-collapsed", "");
+        button.click();
+        return;
       }
-    };
-    observer.end = function () {
-      if (this._active) {
-        this.disconnect();
-      }
+    }
+  }
+}
+
+export function getCollapsedAnswerObserver() {
+  if (!window._collapsedAnswerObserver) {
+    const obj = {
+      _active: false,
+      _handler: collapsedAnswerHandler,
+      start() {
+        if (!this._active) {
+          GlobalObserver.addScoped(this._handler);
+          this._active = true;
+        }
+      },
+      end() {
+        if (this._active) {
+          GlobalObserver.remove(this._handler);
+          this._active = false;
+        }
+      },
     };
 
-    UrlChangeManager.add(function () {
-      observer[location.href.includes("/answer/") === false ? "start" : "end"]();
+    UrlChangeManager.addScoped(function () {
+      obj[location.href.includes("/answer/") === false ? "start" : "end"]();
     });
-    window._collapsedAnswerObserver = observer;
+    window._collapsedAnswerObserver = obj;
   }
   return window._collapsedAnswerObserver;
 }
@@ -152,7 +158,7 @@ export function collapsedAnswer() {
           !menu_value("menu_defaultCollapsedAnswer") &&
           !observer._disconnectListener
         ) {
-          UrlChangeManager.add(function () {
+          UrlChangeManager.addScoped(function () {
             observer.end();
             window._collapsedAnswerObserver = null;
           });

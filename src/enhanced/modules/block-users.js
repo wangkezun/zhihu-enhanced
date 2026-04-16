@@ -11,7 +11,7 @@ export function customBlockUsers() {
   });
   let newBlockUsers = prompt(
     '编辑 [自定义屏蔽用户]\n（不同用户名之间使用 "|" 分隔，例如：用户A|用户B|用户C ）',
-    nowBlockUsers.replace("|", ""),
+    nowBlockUsers.slice(1),
   );
   if (newBlockUsers === "") {
     GM_setValue("menu_customBlockUsers", []);
@@ -93,15 +93,12 @@ export function blockUsers(type) {
           ) {
             let item1 = target.querySelector(".ContentItem.AnswerItem");
             if (item1) {
-              menu_value("menu_customBlockUsers").forEach(function (item2) {
-                // 遍历用户黑名单
-                if (
-                  item1.dataset.zop.includes('authorName":"' + item2 + '",')
-                ) {
-                  // 找到就删除该回答
+              for (const item2 of menu_value("menu_customBlockUsers")) {
+                if (item2 !== "" && item1.dataset.zop.includes('authorName":"' + item2 + '",')) {
                   target.hidden = true;
+                  break;
                 }
-              });
+              }
             }
           }
         }
@@ -117,15 +114,12 @@ export function blockUsers(type) {
             .forEach(function (item) {
               let item1 = item.querySelector(".ContentItem.AnswerItem");
               if (item1) {
-                menu_value("menu_customBlockUsers").forEach(function (item2) {
-                  // 遍历用户黑名单
-                  if (
-                    item1.dataset.zop.includes('authorName":"' + item2 + '",')
-                  ) {
-                    // 找到就删除该回答
+                for (const item2 of menu_value("menu_customBlockUsers")) {
+                  if (item2 !== "" && item1.dataset.zop.includes('authorName":"' + item2 + '",')) {
                     item.hidden = true;
+                    break;
                   }
-                });
+                }
               }
             });
         }
@@ -134,10 +128,10 @@ export function blockUsers(type) {
 
     if (location.pathname.includes("/answer/")) {
       // 回答页（就是只有三个回答的页面）
-      GlobalObserver.add(blockUsers_question_answer_);
+      GlobalObserver.addScoped(blockUsers_question_answer_);
     } else {
       // 问题页（可以显示所有回答的页面）
-      GlobalObserver.add(blockUsers_question_);
+      GlobalObserver.addScoped(blockUsers_question_);
     }
 
     // 针对的是打开网页后直接加载的前面几个回答（上面哪些是针对动态加载的回答）
@@ -146,15 +140,12 @@ export function blockUsers(type) {
       .forEach(function (item) {
         let item1 = item.querySelector(".ContentItem.AnswerItem");
         if (item1) {
-          menu_value("menu_customBlockUsers").forEach(function (item2) {
-            // 遍历用户黑名单
-            if (
-              item1.dataset.zop.includes('authorName":"' + item2 + '",')
-            ) {
-              // 找到就删除该回答
+          for (const item2 of menu_value("menu_customBlockUsers")) {
+            if (item2 !== "" && item1.dataset.zop.includes('authorName":"' + item2 + '",')) {
               item.hidden = true;
+              break;
             }
-          });
+          }
         }
       });
   }
@@ -184,7 +175,7 @@ export function blockUsers(type) {
     }
 
     setTimeout(blockUsers_now, 2000);
-    UrlChangeManager.add(function () {
+    UrlChangeManager.addScoped(function () {
       setTimeout(blockUsers_now, 1000); // 网页 URL 变化后再次执行
     });
 
@@ -209,7 +200,7 @@ export function blockUsers(type) {
         }
       }
     };
-    GlobalObserver.add(callback);
+    GlobalObserver.addScoped(callback);
   }
 
   function blockUsers_comment() {
@@ -240,7 +231,7 @@ export function blockUsers(type) {
         }
       }
     };
-    GlobalObserver.add(callback);
+    GlobalObserver.addScoped(callback);
   }
 
   // 添加屏蔽用户按钮（用户信息悬浮框中）
@@ -311,7 +302,7 @@ export function blockUsers(type) {
         }
       }
     };
-    GlobalObserver.add(callback);
+    GlobalObserver.addScoped(callback);
   }
 
   // 添加屏蔽用户按钮（用户主页）
@@ -358,6 +349,7 @@ export function blockUsers(type) {
   // 屏蔽用户按钮绑定事件（添加）
   function blockUsers_button_add(name, userid, reload) {
     if (!name || !userid) return;
+    if (!/^[\w-]+$/.test(userid)) return;
     let users = menu_value("menu_customBlockUsers"), // 读取屏蔽列表
       index = users.indexOf(name);
     if (index === -1) {
@@ -391,6 +383,7 @@ export function blockUsers(type) {
   // 屏蔽用户按钮绑定事件（删除）
   function blockUsers_button_del(name, userid, reload) {
     if (!name || !userid) return;
+    if (!/^[\w-]+$/.test(userid)) return;
     let users = menu_value("menu_customBlockUsers"), // 读取屏蔽列表
       index = users.indexOf(name);
     if (index > -1) {

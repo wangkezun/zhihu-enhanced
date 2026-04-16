@@ -42,9 +42,12 @@ export function questionInvitation() {
     if (!q) return;
     GlobalObserver.remove(_qiHandler);
     q.style.display = "none";
-    document.querySelector(".QuestionInvitation-title").innerHTML =
-      document.querySelector(".QuestionInvitation-title").innerText +
-      '<span style="cursor: pointer; font-size: 14px; color: #919aae;"> 展开/折叠</span>';
+    const titleEl = document.querySelector(".QuestionInvitation-title");
+    titleEl.textContent = titleEl.textContent;
+    const toggleSpan = document.createElement("span");
+    toggleSpan.style.cssText = "cursor: pointer; font-size: 14px; color: #919aae;";
+    toggleSpan.textContent = " 展开/折叠";
+    titleEl.appendChild(toggleSpan);
     document.querySelector(".Topbar").onclick = function () {
       let q = document.querySelector(".QuestionInvitation-content");
       if (q.style.display == "none") {
@@ -54,7 +57,7 @@ export function questionInvitation() {
       }
     };
   };
-  GlobalObserver.add(_qiHandler);
+  GlobalObserver.addScoped(_qiHandler);
 }
 
 // 屏蔽热榜杂项

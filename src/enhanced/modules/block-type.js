@@ -27,7 +27,7 @@ export function blockType(type) {
   } else if (type === "question") {
     // 问题页
     if (!menu_value("menu_blockTypeVideo")) return;
-    document.lastChild.appendChild(
+    document.head.appendChild(
       document.createElement("style"),
     ).textContent =
       `.VideoAnswerPlayer, .VideoAnswerPlayer video, .VideoAnswerPlayer-video, .VideoAnswerPlayer-iframe {display: none !important;}`;
@@ -66,7 +66,7 @@ export function blockType(type) {
     )
       return;
     if (menu_value("menu_blockTypeVideo"))
-      document.lastChild.appendChild(
+      document.head.appendChild(
         document.createElement("style"),
       ).textContent =
         `.Card .ZVideoItem-video, .VideoAnswerPlayer video, nav.TopstoryTabs > a[aria-controls="Topstory-zvideo"] {display: none !important;}`;
@@ -80,7 +80,7 @@ export function blockType(type) {
   }
 
   // 后续加载的信息流
-  GlobalObserver.add((mutationsList) => {
+  GlobalObserver.addScoped((mutationsList) => {
     for (const mutation of mutationsList) {
       for (const target of mutation.addedNodes) {
         if (target.nodeType != 1) continue;
@@ -102,7 +102,7 @@ export function blockType(type) {
     }
   });
 
-  UrlChangeManager.add(function () {
+  UrlChangeManager.addScoped(function () {
     addSetInterval_(name);
     // 移除相关搜索
     if (
@@ -218,7 +218,7 @@ export function blockType(type) {
         });
       }
     };
-    GlobalObserver.add(_handler);
+    GlobalObserver.addScoped(_handler);
   }
 }
 
@@ -267,10 +267,10 @@ export function blockYanXuan() {
 
   if (location.pathname.includes("/answer/")) {
     // 回答页（就是只有三个回答的页面）
-    GlobalObserver.add(blockYanXuan_question_answer);
+    GlobalObserver.addScoped(blockYanXuan_question_answer);
   } else {
     // 问题页（可以显示所有回答的页面）
-    GlobalObserver.add(blockYanXuan_question);
+    GlobalObserver.addScoped(blockYanXuan_question);
   }
 
   // 针对的是打开网页后直接加载的前面几个回答（上面哪些是针对动态加载的回答）
@@ -332,7 +332,7 @@ export function blockHotOther() {
     }
   };
 
-  GlobalObserver.add(blockLive_content);
+  GlobalObserver.addScoped(blockLive_content);
 
   // 初始移除
   block();

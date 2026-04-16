@@ -23,13 +23,13 @@ export function addToQuestion() {
 
   // 一开始加载的信息流 + 添加按钮样式
   if (location.pathname === "/search") {
-    document.lastChild.appendChild(
+    document.head.appendChild(
       document.createElement("style"),
     ).textContent =
       `a.zhihu_e_toQuestion {font-size: 13px !important;font-weight: normal !important;padding: 1px 6px 0 !important;border-radius: 2px !important;display: inline-block !important;vertical-align: top !important;height: 20.67px !important;line-height: 20.67px !important;margin-top: 2px !important;}`;
     addSetInterval_("h2.ContentItem-title a:not(.zhihu_e_tips)");
   } else {
-    document.lastChild.appendChild(
+    document.head.appendChild(
       document.createElement("style"),
     ).textContent =
       `a.zhihu_e_toQuestion {font-size: 13px !important;font-weight: normal !important;padding: 1px 6px 0 !important;border-radius: 2px !important;display: inline-block !important;vertical-align: top !important;margin-top: 4px !important;}`;
@@ -41,7 +41,7 @@ export function addToQuestion() {
   }
 
   // 后续加载的信息流
-  GlobalObserver.add((mutationsList) => {
+  GlobalObserver.addScoped((mutationsList) => {
     for (const mutation of mutationsList) {
       for (const target of mutation.addedNodes) {
         if (target.nodeType != 1) continue;
@@ -52,7 +52,7 @@ export function addToQuestion() {
     }
   });
 
-  UrlChangeManager.add(function () {
+  UrlChangeManager.addScoped(function () {
     addSetInterval_("h2.ContentItem-title a:not(.zhihu_e_tips)");
   });
 
@@ -93,7 +93,7 @@ export function addToQuestion() {
         });
       }
     };
-    GlobalObserver.add(_handler);
+    GlobalObserver.addScoped(_handler);
   }
 }
 

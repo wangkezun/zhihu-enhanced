@@ -333,6 +333,7 @@ export function blockHotOther() {
   const blockLive_content = (mutationsList) => {
     for (const mutation of mutationsList) {
       for (const target of mutation.addedNodes) {
+        if (target.nodeType != 1) continue;
         if (target.classList.contains("HotItem")) {
           block();
         }

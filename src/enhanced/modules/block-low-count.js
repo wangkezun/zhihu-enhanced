@@ -29,18 +29,21 @@ export function blockLowCount(type) {
   }
 
   function blockLowCount_(selector, className, menuUpvote, menuComment) {
+    // 阈值读一次，避免 observer 热路径里每个 item 重复读 GM 存储
+    const upvoteMin = GM_getValue(menuUpvote),
+      commentMin = GM_getValue(menuComment);
     createContentFilter({
       selector,
       className,
       processItem: function (item) {
-        blockLowCount_1(item, menuUpvote, "upvote_num");
-        blockLowCount_1(item, menuComment, "comment_num");
+        blockLowCount_1(item, upvoteMin, "upvote_num");
+        blockLowCount_1(item, commentMin, "comment_num");
       },
     });
   }
 
-  function blockLowCount_1(item, menu, type) {
-    if (GM_getValue(menu)) {
+  function blockLowCount_1(item, min, type) {
+    if (min) {
       let item_ContentItem = item.querySelector(".ContentItem");
       if (item_ContentItem && item_ContentItem.dataset.zaExtraModule) {
         let item2;
@@ -52,7 +55,7 @@ export function blockLowCount(type) {
         if (
           item2 &&
           item2.card.content &&
-          Number(item2.card.content[type]) < Number(GM_getValue(menu))
+          Number(item2.card.content[type]) < Number(min)
         ) {
           item.hidden = true;
           item.style.display = "none";

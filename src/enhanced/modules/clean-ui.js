@@ -34,6 +34,8 @@ export function removeLogin() {
     for (const mutation of mutationsList) {
       for (const target of mutation.addedNodes) {
         if (target.nodeType != 1) continue;
+        // 登录弹窗容器都是 DIV，粗筛掉其他节点，避免每节点跑 XPath
+        if (target.tagName !== "DIV") continue;
         if (target.querySelector(".signFlowModal")) {
           let button = target.querySelector(
             ".Button.Modal-closeButton.Button--plain",
@@ -114,19 +116,15 @@ export function cleanSearch() {
 // 快捷关闭悬浮评论（监听点击事件，点击网页两侧空白处）
 
 export function closeFloatingComments() {
-  const closeFloatingCommentsModal = (mutationsList) => {
-    for (const mutation of mutationsList) {
-      for (const target of mutation.addedNodes) {
-        if (target.nodeType != 1) continue;
-        let button = document.querySelector('button[aria-label="关闭"]');
-        if (button) {
-          button.parentElement.parentElement.onclick = function (event) {
-            if (event.target.parentElement == this) {
-              button.click();
-            }
-          };
+  // 每批 mutations 只做一次全文档查询（之前是每个 addedNode 查一次）
+  const closeFloatingCommentsModal = () => {
+    const button = document.querySelector('button[aria-label="关闭"]');
+    if (button) {
+      button.parentElement.parentElement.onclick = function (event) {
+        if (event.target.parentElement == this) {
+          button.click();
         }
-      }
+      };
     }
   };
   GlobalObserver.add(closeFloatingCommentsModal);

@@ -1,5 +1,5 @@
 import { escapeHtml } from '../shared/escape-html.js';
-import { initMenuValues, menu_value, menu_setting } from '../shared/menu-framework.js';
+import { initMenuValues, menu_value, menu_setting, setMenuRegistrar } from '../shared/menu-framework.js';
 import { debounce } from '../shared/debounce.js';
 import { GlobalObserver } from '../shared/global-observer.js';
 import { UrlChangeManager, addUrlChangeEvent } from '../shared/url-change.js';
@@ -86,6 +86,7 @@ var menu_ALL = [
   ],
   menu_ID = [];
 initMenuValues(menu_ALL);
+setMenuRegistrar(registerMenuCommand);
 registerMenuCommand();
 
 // 注册脚本菜单

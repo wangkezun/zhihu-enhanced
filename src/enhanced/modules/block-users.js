@@ -1,7 +1,7 @@
 import { GlobalObserver } from '../../shared/global-observer.js';
 import { UrlChangeManager } from '../../shared/url-change.js';
 import { createContentFilter } from '../../shared/content-filter.js';
-import { menu_value } from '../../shared/menu-framework.js';
+import { menu_value, refreshMenu } from '../../shared/menu-framework.js';
 import { escapeHtml } from '../../shared/escape-html.js';
 
 export function customBlockUsers() {
@@ -15,10 +15,10 @@ export function customBlockUsers() {
   );
   if (newBlockUsers === "") {
     GM_setValue("menu_customBlockUsers", []);
-    registerMenuCommand(); // 重新注册脚本菜单
+    refreshMenu(); // 重新注册脚本菜单
   } else if (newBlockUsers != null) {
     GM_setValue("menu_customBlockUsers", newBlockUsers.split("|"));
-    registerMenuCommand(); // 重新注册脚本菜单
+    refreshMenu(); // 重新注册脚本菜单
   }
 }
 

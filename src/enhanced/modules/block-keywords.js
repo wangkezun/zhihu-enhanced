@@ -1,7 +1,7 @@
 import { GlobalObserver } from '../../shared/global-observer.js';
 import { UrlChangeManager } from '../../shared/url-change.js';
 import { createContentFilter } from '../../shared/content-filter.js';
-import { menu_value } from '../../shared/menu-framework.js';
+import { menu_value, refreshMenu } from '../../shared/menu-framework.js';
 
 var selectedTextForBlockKeywords = "";
 // 规范化屏蔽词文本：压缩多余空白并去掉首尾空格
@@ -80,7 +80,7 @@ export function addSelectedKeywordToBlocklist() {
 
   keywords.push(keyword);
   GM_setValue("menu_customBlockKeywords", keywords);
-  registerMenuCommand(); // 同步刷新缓存的菜单值
+  refreshMenu(); // 同步刷新缓存的菜单值
   GM_notification({
     text: `已添加屏蔽词 [${keyword}]\n后续加载的标题/评论会按该关键词过滤~`,
     timeout: 4000,
@@ -99,10 +99,10 @@ export function customBlockKeywords() {
   );
   if (newBlockKeywords === "") {
     GM_setValue("menu_customBlockKeywords", []);
-    registerMenuCommand(); // 重新注册脚本菜单
+    refreshMenu(); // 重新注册脚本菜单
   } else if (newBlockKeywords != null) {
     GM_setValue("menu_customBlockKeywords", newBlockKeywords.split("|"));
-    registerMenuCommand(); // 重新注册脚本菜单
+    refreshMenu(); // 重新注册脚本菜单
   }
 }
 

@@ -3,10 +3,34 @@ import { UrlChangeManager } from '../../shared/url-change.js';
 import { menu_value } from '../../shared/menu-framework.js';
 import { isElementInViewport, isElementInViewport_, getXpath } from '../../shared/dom-utils.js';
 
+// 已知会出现 "外层 wrapper 覆盖两侧空白" 的页面，容器 selector 用于坐标兜底判断。
+// 知乎首页改版后两侧空白被新的 .Topstory wrapper 接管，event.target != bound element，
+// 仅靠 event.target == this 命中不到。
+// 用包含右侧 sidebar 的整体容器做矩形判断，避免点击 sidebar 被误判为空白。
+const SIDE_BLANK_CONTAINER = ".Topstory-container";
+
+function isClickOnSideBlank(event, boundEl) {
+  if (event.target === boundEl) return true;
+  // 点到链接/按钮等具体内容时一定不是空白
+  if (
+    event.target.closest(
+      "a, button, input, textarea, img, video, [role='button']",
+    )
+  )
+    return false;
+  const container = document.querySelector(SIDE_BLANK_CONTAINER);
+  if (!container) return false;
+  const rect = container.getBoundingClientRect();
+  return event.clientX < rect.left || event.clientX > rect.right;
+}
+
 // 默认收起回答的 handler（复用 GlobalObserver，避免创建第二个全局 subtree observer）
 function collapsedAnswerHandler(mutations) {
+  // 注意只能跳过当前 mutation（continue），不能 return：
+  // 同一批 mutations 里还有其他待收起的回答
   for (const mutation of mutations) {
-    if (mutation.target.hasAttribute("script-collapsed")) return;
+    if (mutation.target.nodeType !== Node.ELEMENT_NODE) continue;
+    if (mutation.target.hasAttribute("script-collapsed")) continue;
     // 短的回答
     if (mutation.target.classList.contains("RichContent")) {
       for (const addedNode of mutation.addedNodes) {
@@ -19,7 +43,7 @@ function collapsedAnswerHandler(mutations) {
         if (button) {
           mutation.target.setAttribute("script-collapsed", "");
           button.click();
-          return;
+          break;
         }
       }
       // 长的回答
@@ -28,28 +52,29 @@ function collapsedAnswerHandler(mutations) {
       !mutation.target.style.cssText &&
       !mutation.target.className
     ) {
-      if (mutation.target.parentElement.hasAttribute("script-collapsed"))
-        return;
+      const parent = mutation.target.parentElement;
+      if (!parent || parent.hasAttribute("script-collapsed")) continue;
       const button = mutation.target.querySelector(
         ".ContentItem-actions.Sticky [data-zop-retract-question]",
       );
       if (button) {
-        mutation.target.parentElement.setAttribute("script-collapsed", "");
+        parent.setAttribute("script-collapsed", "");
         button.click();
-        return;
       }
     }
   }
 }
 
+let collapsedObserver = null;
+
 export function getCollapsedAnswerObserver() {
-  if (!window._collapsedAnswerObserver) {
-    const obj = {
+  if (!collapsedObserver) {
+    collapsedObserver = {
       _active: false,
       _handler: collapsedAnswerHandler,
       start() {
         if (!this._active) {
-          GlobalObserver.addScoped(this._handler);
+          GlobalObserver.add(this._handler);
           this._active = true;
         }
       },
@@ -61,12 +86,18 @@ export function getCollapsedAnswerObserver() {
       },
     };
 
-    UrlChangeManager.addScoped(function () {
-      obj[location.href.includes("/answer/") === false ? "start" : "end"]();
+    UrlChangeManager.add(function () {
+      if (!menu_value("menu_defaultCollapsedAnswer")) {
+        // [默认收起回答] 关闭时，手动开启的 observer 只对当前页生效
+        collapsedObserver.end();
+      } else {
+        collapsedObserver[
+          location.href.includes("/answer/") ? "end" : "start"
+        ]();
+      }
     });
-    window._collapsedAnswerObserver = obj;
   }
-  return window._collapsedAnswerObserver;
+  return collapsedObserver;
 }
 
 // 默认收起回答
@@ -151,19 +182,9 @@ export function collapsedAnswer() {
             button.click();
           });
 
-        const observer = getCollapsedAnswerObserver();
-        observer.start();
-
-        if (
-          !menu_value("menu_defaultCollapsedAnswer") &&
-          !observer._disconnectListener
-        ) {
-          UrlChangeManager.addScoped(function () {
-            observer.end();
-            window._collapsedAnswerObserver = null;
-          });
-          observer._disconnectListener = true;
-        }
+        // [默认收起回答] 关闭时，getCollapsedAnswerObserver 内注册的
+        // URL handler 会在下次导航时自动 end()
+        getCollapsedAnswerObserver().start();
       }
     };
   }
@@ -173,8 +194,10 @@ export function collapsedAnswer() {
 export function collapsedNowAnswer(selectors) {
   backToTop(selectors); // 快捷回到顶部
   if (!menu_value("menu_collapsedNowAnswer")) return;
-  document.querySelector(selectors).onclick = function (event) {
-    if (event.target == this) {
+  const el = document.querySelector(selectors);
+  if (!el) return;
+  el.onclick = function (event) {
+    if (isClickOnSideBlank(event, this)) {
       // 下面这段主要是 [收起回答]，顺便 [收起评论]（如果展开了的话）
       let rightButton = document.querySelector(
         ".ContentItem-actions.Sticky.RichContent-actions.is-fixed.is-bottom",
@@ -355,8 +378,10 @@ export function collapsedNowAnswer(selectors) {
 // 回到顶部（监听点击事件，鼠标右键点击网页两侧空白处）
 export function backToTop(selectors) {
   if (!menu_value("menu_backToTop")) return;
-  document.querySelector(selectors).oncontextmenu = function (event) {
-    if (event.target == this) {
+  const el = document.querySelector(selectors);
+  if (!el) return;
+  el.oncontextmenu = function (event) {
+    if (isClickOnSideBlank(event, this)) {
       event.preventDefault();
       window.scrollTo(0, 0);
     }

@@ -128,10 +128,10 @@ export function blockUsers(type) {
 
     if (location.pathname.includes("/answer/")) {
       // 回答页（就是只有三个回答的页面）
-      GlobalObserver.addScoped(blockUsers_question_answer_);
+      GlobalObserver.add(blockUsers_question_answer_);
     } else {
       // 问题页（可以显示所有回答的页面）
-      GlobalObserver.addScoped(blockUsers_question_);
+      GlobalObserver.add(blockUsers_question_);
     }
 
     // 针对的是打开网页后直接加载的前面几个回答（上面哪些是针对动态加载的回答）
@@ -175,7 +175,7 @@ export function blockUsers(type) {
     }
 
     setTimeout(blockUsers_now, 2000);
-    UrlChangeManager.addScoped(function () {
+    UrlChangeManager.add(function () {
       setTimeout(blockUsers_now, 1000); // 网页 URL 变化后再次执行
     });
 
@@ -200,7 +200,7 @@ export function blockUsers(type) {
         }
       }
     };
-    GlobalObserver.addScoped(callback);
+    GlobalObserver.add(callback);
   }
 
   function blockUsers_comment() {
@@ -231,7 +231,7 @@ export function blockUsers(type) {
         }
       }
     };
-    GlobalObserver.addScoped(callback);
+    GlobalObserver.add(callback);
   }
 
   // 添加屏蔽用户按钮（用户信息悬浮框中）
@@ -302,7 +302,7 @@ export function blockUsers(type) {
         }
       }
     };
-    GlobalObserver.addScoped(callback);
+    GlobalObserver.add(callback);
   }
 
   // 添加屏蔽用户按钮（用户主页）

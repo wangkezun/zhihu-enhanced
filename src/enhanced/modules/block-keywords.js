@@ -38,7 +38,7 @@ export function rememberSelectedBlockKeyword() {
   };
   document.addEventListener("selectionchange", updateSelectedBlockKeyword);
   document.addEventListener("contextmenu", updateSelectedBlockKeyword, true);
-  UrlChangeManager.addScoped(function () {
+  UrlChangeManager.add(function () {
     selectedTextForBlockKeywords = "";
   });
 }
@@ -183,7 +183,7 @@ export function blockKeywords(type) {
     }
 
     setTimeout(blockKeywords_now, 2000);
-    UrlChangeManager.addScoped(function () {
+    UrlChangeManager.add(function () {
       setTimeout(blockKeywords_now, 1000); // 网页 URL 变化后再次执行
     });
 
@@ -206,7 +206,7 @@ export function blockKeywords(type) {
         }
       }
     };
-    GlobalObserver.addScoped(callback);
+    GlobalObserver.add(callback);
   }
 
   function blockKeywords_comment() {
@@ -266,7 +266,7 @@ export function blockKeywords(type) {
         }
       }
     };
-    GlobalObserver.addScoped(callback);
+    GlobalObserver.add(callback);
   }
 
   function blockKeywords_1(item1, css) {

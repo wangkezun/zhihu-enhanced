@@ -150,10 +150,6 @@ function menu_switch(menu_status, Name, Tips) {
   if (window.onurlchange === undefined) {
     addUrlChangeEvent();
   }
-  // SPA 页面切换时清理所有 scoped handlers，避免 handler 累积
-  UrlChangeManager.onBeforeNavigate(function () {
-    GlobalObserver.clearScoped();
-  });
   rememberSelectedBlockKeyword();
 
   removeLogin();
@@ -207,7 +203,7 @@ function menu_switch(menu_status, Name, Tips) {
         blockType("question");
         defaultCollapsedAnswer();
       }
-      GlobalObserver.addScoped(
+      GlobalObserver.add(
         debounce(function () {
           topTime_(".ContentItem.AnswerItem", "ContentItem-meta");
         }, 300),
@@ -221,7 +217,7 @@ function menu_switch(menu_status, Name, Tips) {
       //          搜索结果页 //
       collapsedNowAnswer("main div");
       collapsedNowAnswer(".Search-container");
-      GlobalObserver.addScoped(
+      GlobalObserver.add(
         debounce(function () {
           topTime_(
             ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
@@ -241,7 +237,7 @@ function menu_switch(menu_status, Name, Tips) {
         location.href.includes("/top-answers")
       ) {
         collapsedNowAnswer("main.App-main");
-        GlobalObserver.addScoped(
+        GlobalObserver.add(
           debounce(function () {
             topTime_(
               ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
@@ -265,7 +261,7 @@ function menu_switch(menu_status, Name, Tips) {
       setTimeout(function () {
         collapsedAnswer();
         collapsedNowAnswer("main div");
-        GlobalObserver.addScoped(
+        GlobalObserver.add(
           debounce(function () {
             topTime_(
               ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
@@ -286,7 +282,7 @@ function menu_switch(menu_status, Name, Tips) {
       }
       collapsedNowAnswer("main div");
       collapsedNowAnswer(".Profile-main");
-      GlobalObserver.addScoped(
+      GlobalObserver.add(
         debounce(function () {
           topTime_(
             ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
@@ -302,7 +298,7 @@ function menu_switch(menu_status, Name, Tips) {
       addToQuestion();
       collapsedNowAnswer("main");
       collapsedNowAnswer(".CollectionsDetailPage");
-      GlobalObserver.addScoped(
+      GlobalObserver.add(
         debounce(function () {
           topTime_(
             ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
@@ -314,7 +310,7 @@ function menu_switch(menu_status, Name, Tips) {
     } else if (location.pathname.includes("/pin/")) {
       // 想法 //
       backToTop("main[role=main]");
-      GlobalObserver.addScoped(
+      GlobalObserver.add(
         debounce(function () {
           topTime_(".ContentItem.PinItem", "ContentItem-meta");
         }, 300),
@@ -342,7 +338,7 @@ function menu_switch(menu_status, Name, Tips) {
       collapsedNowAnswer("main div");
       collapsedNowAnswer(".Topstory-container");
       if (location.pathname !== "/column-square") {
-        GlobalObserver.addScoped(
+        GlobalObserver.add(
           debounce(function () {
             topTime_(".TopstoryItem", "ContentItem-meta");
           }, 300),

@@ -80,7 +80,7 @@ export function blockType(type) {
   }
 
   // 后续加载的信息流
-  GlobalObserver.addScoped((mutationsList) => {
+  GlobalObserver.add((mutationsList) => {
     for (const mutation of mutationsList) {
       for (const target of mutation.addedNodes) {
         if (target.nodeType != 1) continue;
@@ -102,7 +102,7 @@ export function blockType(type) {
     }
   });
 
-  UrlChangeManager.addScoped(function () {
+  UrlChangeManager.add(function () {
     addSetInterval_(name);
     // 移除相关搜索
     if (
@@ -201,7 +201,13 @@ export function blockType(type) {
     }
   }
 
+  let pendingHandler = null;
   function addSetInterval_(A) {
+    // URL 变化会重新进入，先移除上一个未命中的 handler，避免累积
+    if (pendingHandler) {
+      GlobalObserver.remove(pendingHandler);
+      pendingHandler = null;
+    }
     let aTag = document.querySelectorAll(A);
     if (aTag.length > 0) {
       aTag.forEach(function (item) {
@@ -213,12 +219,14 @@ export function blockType(type) {
       let aTag = document.querySelectorAll(A);
       if (aTag.length > 0) {
         GlobalObserver.remove(_handler);
+        if (pendingHandler === _handler) pendingHandler = null;
         aTag.forEach(function (item) {
           blockType_(item);
         });
       }
     };
-    GlobalObserver.addScoped(_handler);
+    pendingHandler = _handler;
+    GlobalObserver.add(_handler);
   }
 }
 
@@ -267,10 +275,10 @@ export function blockYanXuan() {
 
   if (location.pathname.includes("/answer/")) {
     // 回答页（就是只有三个回答的页面）
-    GlobalObserver.addScoped(blockYanXuan_question_answer);
+    GlobalObserver.add(blockYanXuan_question_answer);
   } else {
     // 问题页（可以显示所有回答的页面）
-    GlobalObserver.addScoped(blockYanXuan_question);
+    GlobalObserver.add(blockYanXuan_question);
   }
 
   // 针对的是打开网页后直接加载的前面几个回答（上面哪些是针对动态加载的回答）
@@ -332,7 +340,7 @@ export function blockHotOther() {
     }
   };
 
-  GlobalObserver.addScoped(blockLive_content);
+  GlobalObserver.add(blockLive_content);
 
   // 初始移除
   block();

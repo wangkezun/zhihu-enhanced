@@ -17,7 +17,7 @@ export function cleanHighlightLink() {
       }
     }
   };
-  GlobalObserver.addScoped(callback);
+  GlobalObserver.add(callback);
 
   // 针对的是打开网页后直接加载的前面几个回答（上面哪些是针对动态加载的回答）
   document
@@ -129,7 +129,7 @@ export function closeFloatingComments() {
       }
     }
   };
-  GlobalObserver.addScoped(closeFloatingCommentsModal);
+  GlobalObserver.add(closeFloatingCommentsModal);
 }
 
 // 自定义 urlchange 事件（用来监听 URL 变化）

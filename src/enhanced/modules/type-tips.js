@@ -41,7 +41,7 @@ export function addToQuestion() {
   }
 
   // 后续加载的信息流
-  GlobalObserver.addScoped((mutationsList) => {
+  GlobalObserver.add((mutationsList) => {
     for (const mutation of mutationsList) {
       for (const target of mutation.addedNodes) {
         if (target.nodeType != 1) continue;
@@ -52,7 +52,7 @@ export function addToQuestion() {
     }
   });
 
-  UrlChangeManager.addScoped(function () {
+  UrlChangeManager.add(function () {
     addSetInterval_("h2.ContentItem-title a:not(.zhihu_e_tips)");
   });
 
@@ -76,7 +76,13 @@ export function addToQuestion() {
     }
   }
 
+  let pendingHandler = null;
   function addSetInterval_(A) {
+    // URL 变化会重新进入，先移除上一个未命中的 handler，避免累积
+    if (pendingHandler) {
+      GlobalObserver.remove(pendingHandler);
+      pendingHandler = null;
+    }
     let aTag = document.querySelectorAll(A);
     if (aTag.length > 0) {
       aTag.forEach(function (item) {
@@ -88,12 +94,14 @@ export function addToQuestion() {
       let aTag = document.querySelectorAll(A);
       if (aTag.length > 0) {
         GlobalObserver.remove(_handler);
+        if (pendingHandler === _handler) pendingHandler = null;
         aTag.forEach(function (item) {
           addTypeTips_(item);
         });
       }
     };
-    GlobalObserver.addScoped(_handler);
+    pendingHandler = _handler;
+    GlobalObserver.add(_handler);
   }
 }
 

@@ -57,7 +57,7 @@ export function questionInvitation() {
       }
     };
   };
-  GlobalObserver.addScoped(_qiHandler);
+  GlobalObserver.add(_qiHandler);
 }
 
 // 屏蔽热榜杂项

@@ -27,7 +27,7 @@ var menu_ALL = [
     { key: "menu_backToTop", label: "快捷回到顶部 (右键两侧空白处)", tips: "快捷回到顶部", default: true, type: "toggle" },
     {
       key: "menu_blockLowCount", label: "屏蔽低赞低评",
-      tips: "设置要屏蔽 低于多少赞同/评价 的回答/文章（默认不需要留空即可）<br/>（例如设置 0 则无人赞同/评价的回答/文章会被屏蔽<br/>（例如设置 20 则赞同/评价数量低于 20 的回答/文章会被屏蔽<br/>（修改后，后续加载的回答/文章会立即生效，但不影响当前网页已有内容",
+      tips: "设置要屏蔽 低于多少赞同/评价 的回答/文章（默认不需要留空即可）\n（例如设置 0 则无人赞同/评价的回答/文章会被屏蔽\n（例如设置 20 则赞同/评价数量低于 20 的回答/文章会被屏蔽\n（修改后，后续加载的回答/文章会立即生效，但不影响当前网页已有内容",
       type: "group",
       children: [
         { key: "menu_blockLowUpvoteCount", label: "最低赞同数 [首页]", default: "", inputType: "text" },

@@ -30,6 +30,22 @@ export function blockUsers(type) {
     menu_value("menu_customBlockUsers").length < 1
   )
     return;
+  // 屏蔽列表读一次，避免 observer 热路径里每个 item 重复读 GM 存储
+  // （修改列表后本来就需要刷新页面生效，缓存不会过期）
+  const users = menu_value("menu_customBlockUsers");
+
+  // dataset.zop 是 JSON，直接解析取 authorName，
+  // 避免字符串拼接匹配对键序/转义的脆弱假设
+  function isBlockedAuthor(contentItem) {
+    const zop = contentItem.dataset.zop;
+    if (!zop) return false;
+    try {
+      return users.includes(JSON.parse(zop).authorName);
+    } catch (e) {
+      return false;
+    }
+  }
+
   switch (type) {
     case "index":
       blockUsers_(
@@ -67,16 +83,8 @@ export function blockUsers(type) {
         let item = container.querySelector(
           ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
         );
-        if (item) {
-          for (const keyword of menu_value("menu_customBlockUsers")) {
-            if (
-              keyword != "" &&
-              item.dataset.zop.includes('authorName":"' + keyword + '",')
-            ) {
-              container.hidden = true;
-              break;
-            }
-          }
+        if (item && isBlockedAuthor(item)) {
+          container.hidden = true;
         }
       },
     });
@@ -92,13 +100,8 @@ export function blockUsers(type) {
             target.className === "Card AnswerCard"
           ) {
             let item1 = target.querySelector(".ContentItem.AnswerItem");
-            if (item1) {
-              for (const item2 of menu_value("menu_customBlockUsers")) {
-                if (item2 !== "" && item1.dataset.zop.includes('authorName":"' + item2 + '",')) {
-                  target.hidden = true;
-                  break;
-                }
-              }
+            if (item1 && isBlockedAuthor(item1)) {
+              target.hidden = true;
             }
           }
         }
@@ -113,13 +116,8 @@ export function blockUsers(type) {
             .querySelectorAll(".List-item, .Card.AnswerCard")
             .forEach(function (item) {
               let item1 = item.querySelector(".ContentItem.AnswerItem");
-              if (item1) {
-                for (const item2 of menu_value("menu_customBlockUsers")) {
-                  if (item2 !== "" && item1.dataset.zop.includes('authorName":"' + item2 + '",')) {
-                    item.hidden = true;
-                    break;
-                  }
-                }
+              if (item1 && isBlockedAuthor(item1)) {
+                item.hidden = true;
               }
             });
         }
@@ -139,13 +137,8 @@ export function blockUsers(type) {
       .querySelectorAll(".List-item, .Card.AnswerCard")
       .forEach(function (item) {
         let item1 = item.querySelector(".ContentItem.AnswerItem");
-        if (item1) {
-          for (const item2 of menu_value("menu_customBlockUsers")) {
-            if (item2 !== "" && item1.dataset.zop.includes('authorName":"' + item2 + '",')) {
-              item.hidden = true;
-              break;
-            }
-          }
+        if (item1 && isBlockedAuthor(item1)) {
+          item.hidden = true;
         }
       });
   }
@@ -161,15 +154,9 @@ export function blockUsers(type) {
           let item = item1.querySelector(
             ".RichText.ztext.CopyrightRichText-richText b",
           ); // 用户名所在元素
-          if (item) {
-            for (const keyword of menu_value("menu_customBlockUsers")) {
-              // 遍历用户名黑名单
-              if (keyword != "" && item.textContent === keyword) {
-                // 找到就删除该信息流
-                item1.hidden = true;
-                break;
-              }
-            }
+          if (item && item.textContent !== "" && users.includes(item.textContent)) {
+            // 找到就删除该信息流
+            item1.hidden = true;
           }
         });
     }
@@ -187,15 +174,9 @@ export function blockUsers(type) {
           let item = target.querySelector(
             '.Card.SearchResult-Card[data-za-detail-view-path-module="AnswerItem"] .RichText.ztext.CopyrightRichText-richText b, .Card.SearchResult-Card[data-za-detail-view-path-module="PostItem"] .RichText.ztext.CopyrightRichText-richText b',
           );
-          if (item) {
-            for (const keyword of menu_value("menu_customBlockUsers")) {
-              // 遍历用户名黑名单
-              if (keyword != "" && item.textContent === keyword) {
-                // 找到就删除该信息流
-                target.hidden = true;
-                break;
-              }
-            }
+          if (item && item.textContent !== "" && users.includes(item.textContent)) {
+            // 找到就删除该信息流
+            target.hidden = true;
           }
         }
       }
@@ -216,16 +197,10 @@ export function blockUsers(type) {
             let item = target.querySelector(
               'a[href^="https://www.zhihu.com/people/"]>img.Avatar[alt][loading]',
             );
-            if (item) {
-              menu_value("menu_customBlockUsers").forEach(function (item1) {
-                // 遍历用户黑名单
-                if (item.alt === item1) {
-                  // 找到就删除该搜索结果
-                  item.parentElement.parentElement.parentElement.parentElement.style.display =
-                    "none";
-                }
-              });
-
+            if (item && users.includes(item.alt)) {
+              // 找到就删除该评论
+              item.parentElement.parentElement.parentElement.parentElement.style.display =
+                "none";
             }
           }
         }
@@ -254,8 +229,7 @@ export function blockUsers(type) {
               );
             if (item1) {
               const name = item1.textContent,
-                userid = item1.href.split("/")[4],
-                users = menu_value("menu_customBlockUsers");
+                userid = item1.href.split("/")[4];
               for (let num = 0; num < users.length; num++) {
                 // 判断是否已存在
                 if (users[num] === name) {

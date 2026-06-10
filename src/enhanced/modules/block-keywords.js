@@ -114,6 +114,15 @@ export function blockKeywords(type) {
     menu_value("menu_customBlockKeywords").length < 1
   )
     return;
+  // 关键词读一次并预小写，避免 observer 热路径里每个 item 重复读 GM 存储
+  // （修改关键词后本来就需要刷新页面生效，缓存不会过期）
+  const keywordsLower = menu_value("menu_customBlockKeywords")
+    .filter(function (k) {
+      return k !== "";
+    })
+    .map(function (k) {
+      return k.toLowerCase();
+    });
   switch (type) {
     case "index":
       blockKeywords_(
@@ -197,10 +206,7 @@ export function blockKeywords(type) {
               'div[class="Card SearchResult-Card"][data-za-detail-view-path-module="AnswerItem"], div[class="Card SearchResult-Card"][data-za-detail-view-path-module="PostItem"]',
             );
             if (tt) {
-              blockKeywords_1(
-                target.childNodes[0],
-                "a[data-za-detail-view-id]",
-              );
+              blockKeywords_1(tt, "a[data-za-detail-view-id]");
             }
           }
         }
@@ -212,15 +218,15 @@ export function blockKeywords(type) {
   function blockKeywords_comment() {
     function filterComment(comment) {
       let content = comment.querySelector(".CommentContent"); // 寻找评论文字所在元素
+      if (!content) return;
       let text = content.textContent.toLowerCase(); // 全部转为小写（用来不区分大小写）
       content.querySelectorAll("img.sticker[alt]").forEach((img) => {
-        text += img.alt;
+        text += img.alt.toLowerCase();
       }); // 将评论中的表情添加到待遍历的评论文字中
 
-      let keywords = menu_value("menu_customBlockKeywords");
-      for (const keyword of keywords) {
+      for (const keyword of keywordsLower) {
         // 遍历关键词黑名单
-        if (keyword != "" && text.indexOf(keyword.toLowerCase()) > -1) {
+        if (text.indexOf(keyword) > -1) {
           // 找到就删除该评论
           let originalNodes = Array.from(content.childNodes).map((n) =>
             n.cloneNode(true),
@@ -235,6 +241,9 @@ export function blockKeywords(type) {
             }
           };
           content.textContent = "[该评论已屏蔽，可点击显示]";
+          // 必须停止匹配：此时 childNodes 已是占位符，
+          // 再命中会把占位符当原文 clone，原评论无法恢复
+          break;
         }
       }
     }
@@ -272,13 +281,10 @@ export function blockKeywords(type) {
   function blockKeywords_1(item1, css) {
     let item = item1.querySelector(css); // 标题所在元素
     if (item) {
-      for (const keyword of menu_value("menu_customBlockKeywords")) {
+      let text = (item.content || item.textContent).toLowerCase();
+      for (const keyword of keywordsLower) {
         // 遍历关键词黑名单
-        let text = item.content || item.textContent;
-        if (
-          keyword != "" &&
-          text.toLowerCase().indexOf(keyword.toLowerCase()) > -1
-        ) {
+        if (text.indexOf(keyword) > -1) {
           // 找到就删除该信息流
           item1.hidden = true;
           item1.style.display = "none";

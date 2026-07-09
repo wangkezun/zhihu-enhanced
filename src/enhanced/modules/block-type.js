@@ -1,301 +1,69 @@
 import { GlobalObserver } from '../../shared/global-observer.js';
-import { UrlChangeManager } from '../../shared/url-change.js';
 import { menu_value } from '../../shared/menu-framework.js';
 
-export function blockType(type) {
-  let name;
-  // 一开始加载的信息流 + 添加标签样式
-  if (type === "search") {
-    // 搜索页
-    if (
-      !menu_value("menu_blockTypeVideo") &&
-      !menu_value("menu_blockTypeArticle") &&
-      !menu_value("menu_blockTypePin") &&
-      !menu_value("menu_blockTypeTopic") &&
-      !menu_value("menu_blockTypeSearch")
-    )
-      return;
-    if (menu_value("menu_blockTypeSearch") && location.pathname === "/search")
-      setTimeout(function () {
-        document.querySelectorAll(".RelevantQuery").forEach((r) => {
-          r.parentElement.parentElement.hidden = true;
-        });
-      }, 2000);
-    name =
-      "h2.ContentItem-title a:not(.zhihu_e_toQuestion), a.KfeCollection-PcCollegeCard-link, h2.SearchTopicHeader-Title a";
-    addSetInterval_(name);
-  } else if (type === "question") {
-    // 问题页
-    if (!menu_value("menu_blockTypeVideo")) return;
-    document.head.appendChild(
-      document.createElement("style"),
-    ).textContent =
-      `.VideoAnswerPlayer, .VideoAnswerPlayer video, .VideoAnswerPlayer-video, .VideoAnswerPlayer-iframe {display: none !important;}`;
-    name = ".VideoAnswerPlayer";
-    document.querySelectorAll(name).forEach(function (item) {
-      blockType_(item);
-    });
-  } else if (type === "follow") {
-    // 首页 - 关注
-    if (
-      !menu_value("menu_blockTypeFollowAgree") &&
-      !menu_value("menu_blockTypeFollowQuestion")
-    )
-      return;
-    if (menu_value("menu_blockTypeFollowAgree"))
-      name = ".TopstoryItem-isFollow .FeedSource-byline"; // 赞同了XX
-    if (menu_value("menu_blockTypeFollowQuestion")) {
-      if (name) {
-        name +=
-          ",.ContentItem[data-za-detail-view-path-module=QuestionItem]:not(.AnswerItem):not(.PinItem)";
-      } else {
-        name =
-          ".ContentItem[data-za-detail-view-path-module=QuestionItem]:not(.AnswerItem):not(.PinItem)";
-      }
-    } // 关注了XX
-    if (!name) return;
-    document.querySelectorAll(name).forEach(function (item) {
-      blockType_(item);
-    });
+// ========== 核心过滤函数（供 DomDispatcher process 使用） ==========
+
+export function process(item) {
+  if (!item) return
+  if (location.pathname === '/search') {
+    if (location.search.includes('type=content') === false) return
+    if (item.href?.includes('/zvideo/') || item.href?.includes('video.zhihu.com')) {
+      if (menu_value('menu_blockTypeVideo')) item.closest('.Card')?.remove()
+    } else if (item.href?.includes('zhuanlan.zhihu.com')) {
+      if (menu_value('menu_blockTypeArticle')) item.closest('.Card.SearchResult-Card').hidden = true
+    } else if (item.href?.includes('/topic/')) {
+      if (menu_value('menu_blockTypeTopic')) item.closest('.Card.SearchResult-Card').hidden = true
+    } else if (item.href?.includes('/market/')) {
+      if (menu_value('menu_blockTypeSearch')) item.closest('.Card.SearchResult-Card').hidden = true
+    }
+  } else if (location.pathname.includes('/question/')) {
+    if (menu_value('menu_blockTypeVideo')) item.closest('.List-item').hidden = true
   } else {
-    // 首页
-    if (
-      !menu_value("menu_blockTypeVideo") &&
-      !menu_value("menu_blockTypeArticle") &&
-      !menu_value("menu_blockTypePin")
-    )
-      return;
-    if (menu_value("menu_blockTypeVideo"))
-      document.head.appendChild(
-        document.createElement("style"),
-      ).textContent =
-        `.Card .ZVideoItem-video, .VideoAnswerPlayer video, nav.TopstoryTabs > a[aria-controls="Topstory-zvideo"] {display: none !important;}`;
-    name = "h2.ContentItem-title a:not(.zhihu_e_toQuestion)";
-    if (menu_value("menu_blockTypePin"))
-      name =
-        "h2.ContentItem-title a:not(.zhihu_e_toQuestion), .ContentItem.PinItem";
-    document.querySelectorAll(name).forEach(function (item) {
-      blockType_(item);
-    });
-  }
-
-  // 后续加载的信息流
-  GlobalObserver.add((mutationsList) => {
-    for (const mutation of mutationsList) {
-      for (const target of mutation.addedNodes) {
-        if (target.nodeType != 1) continue;
-        if (
-          target.className === "Card SearchResult-Card" &&
-          target.dataset.zaDetailViewPathModule === undefined
-        ) {
-          // 移除相关搜索
-          if (
-            menu_value("menu_blockTypeSearch") &&
-            location.pathname === "/search" &&
-            location.search.includes("type=content")
-          )
-            target.hidden = true;
-        } else {
-          blockType_(target.querySelector(name));
-        }
-      }
+    if (item.className === 'ContentItem PinItem') {
+      if (menu_value('menu_blockTypePin')) item.closest('.Card.TopstoryItem').hidden = true
+    } else if (item.href?.includes('/zvideo/') || item.href?.includes('video.zhihu.com')) {
+      if (menu_value('menu_blockTypeVideo')) item.closest('.Card.TopstoryItem').hidden = true
+    } else if (item.href?.includes('zhuanlan.zhihu.com')) {
+      if (menu_value('menu_blockTypeArticle')) item.closest('.Card.TopstoryItem').hidden = true
     }
-  });
-
-  UrlChangeManager.add(function () {
-    addSetInterval_(name);
-    // 移除相关搜索
-    if (
-      menu_value("menu_blockTypeSearch") &&
-      location.pathname === "/search" &&
-      location.search.includes("type=content")
-    )
-      setTimeout(function () {
-        document.querySelectorAll(".RelevantQuery").forEach((r) => {
-          r.parentElement.parentElement.hidden = true;
-        });
-      }, 1500);
-  });
-
-  function blockType_(titleA) {
-    if (!titleA) return; // 判断是否为真
-    if (location.pathname === "/search") {
-      // 搜索页
-      if (location.search.includes("type=content") === false) return; //   仅限搜索页的 [综合]
-      if (
-        titleA.href.includes("/zvideo/") ||
-        titleA.href.includes("video.zhihu.com")
-      ) {
-        // 如果是视频
-        if (menu_value("menu_blockTypeVideo"))
-          titleA.closest(".Card").remove();
-      } else if (titleA.href.includes("zhuanlan.zhihu.com")) {
-        // 如果是文章
-        if (menu_value("menu_blockTypeArticle"))
-          titleA.closest(".Card.SearchResult-Card").hidden = true;
-      } else if (titleA.href.includes("/topic/")) {
-        //            如果是话题
-        if (menu_value("menu_blockTypeTopic"))
-          titleA.closest(".Card.SearchResult-Card").hidden = true;
-      } else if (titleA.href.includes("/market/")) {
-        //           如果是杂志文章等乱七八糟的
-        if (menu_value("menu_blockTypeSearch"))
-          titleA.closest(".Card.SearchResult-Card").hidden = true;
-      }
-    } else if (location.pathname.includes("/question/")) {
-      // 问题页
-      if (menu_value("menu_blockTypeVideo"))
-        titleA.closest(".List-item").hidden = true;
-    } else if (location.pathname.includes("/follow")) {
-      // 首页 - 关注
-      if (type === "follow") {
-        if (
-          (menu_value("menu_blockTypeFollowAgree") &&
-            titleA.className.includes("FeedSource-byline")) ||
-          (menu_value("menu_blockTypeFollowQuestion") &&
-            titleA.dataset.zaDetailViewPathModule == "QuestionItem")
-        )
-          titleA.closest(".Card.TopstoryItem.TopstoryItem-isFollow").hidden = true; // 赞同了XX + 关注了XX
-      }
-      if (
-        titleA.className == "ContentItem PinItem" &&
-        menu_value("menu_blockTypePin")
-      )
-        titleA.closest(".Card.TopstoryItem.TopstoryItem-isFollow").hidden = true; // 如果是想法
-    } else {
-      // 首页
-      if (titleA.className == "ContentItem PinItem") {
-        // 如果是想法（针对无标题）
-        if (menu_value("menu_blockTypePin"))
-          titleA.closest(".Card.TopstoryItem.TopstoryItem-isRecommend").hidden = true;
-      } else if (
-        titleA.href.includes("/zvideo/") ||
-        titleA.href.includes("video.zhihu.com")
-      ) {
-        // 如果是视频
-        if (menu_value("menu_blockTypeVideo")) {
-          titleA.closest(".Card.TopstoryItem.TopstoryItem-isRecommend").hidden = true;
-        }
-      } else if (titleA.href.includes("/answer/")) {
-        //           如果是问题（视频回答）
-        if (
-          titleA.closest(".ContentItem.AnswerItem").querySelector(
-            ".VideoAnswerPlayer",
-          )
-        ) {
-          if (menu_value("menu_blockTypeVideo")) {
-            titleA.closest(".Card.TopstoryItem.TopstoryItem-isRecommend").hidden = true;
-            titleA.closest(".ContentItem.AnswerItem").remove();
-          }
-        }
-      } else if (titleA.href.includes("/education/video-course/")) {
-        // 如果是视频课程
-        if (menu_value("menu_blockTypeVideo")) {
-          titleA.closest(".Card.TopstoryItem.TopstoryItem-isRecommend").hidden = true;
-        }
-      } else if (titleA.href.includes("zhuanlan.zhihu.com")) {
-        // 如果是文章
-        if (menu_value("menu_blockTypeArticle"))
-          titleA.closest(".Card.TopstoryItem.TopstoryItem-isRecommend").hidden = true;
-      }
-    }
-  }
-
-  let pendingHandler = null;
-  function addSetInterval_(A) {
-    // URL 变化会重新进入，先移除上一个未命中的 handler，避免累积
-    if (pendingHandler) {
-      GlobalObserver.remove(pendingHandler);
-      pendingHandler = null;
-    }
-    let aTag = document.querySelectorAll(A);
-    if (aTag.length > 0) {
-      aTag.forEach(function (item) {
-        blockType_(item);
-      });
-      return;
-    }
-    var _handler = function () {
-      let aTag = document.querySelectorAll(A);
-      if (aTag.length > 0) {
-        GlobalObserver.remove(_handler);
-        if (pendingHandler === _handler) pendingHandler = null;
-        aTag.forEach(function (item) {
-          blockType_(item);
-        });
-      }
-    };
-    pendingHandler = _handler;
-    GlobalObserver.add(_handler);
   }
 }
 
-// 寻找父元素
+// ========== 向下兼容的 blockType(type) 包装（仅做初始扫描，无 GlobalObserver） ==========
+
+function getSelector(type) {
+  if (type === 'search') return 'h2.ContentItem-title a:not(.zhihu_e_toQuestion), a.KfeCollection-PcCollegeCard-link, h2.SearchTopicHeader-Title a'
+  if (type === 'question') return '.VideoAnswerPlayer'
+  if (type === 'follow') {
+    const parts = []
+    if (menu_value('menu_blockTypeFollowAgree')) parts.push('.TopstoryItem-isFollow .FeedSource-byline')
+    if (menu_value('menu_blockTypeFollowQuestion')) parts.push('.ContentItem[data-za-detail-view-path-module=QuestionItem]:not(.AnswerItem):not(.PinItem)')
+    return parts.join(',') || null
+  }
+  // index
+  let sel = 'h2.ContentItem-title a:not(.zhihu_e_toQuestion)'
+  if (menu_value('menu_blockTypePin')) sel += ', .ContentItem.PinItem'
+  return sel
+}
+
+export function blockType(type) {
+  const sel = getSelector(type)
+  if (!sel) return
+  document.querySelectorAll(sel).forEach(process)
+}
+
+// ========== 屏蔽盐选内容（保留，Task 8e 添加 SELECTOR_YANXUAN + processYanXuan） ==========
 
 export function blockYanXuan() {
-  if (!menu_value("menu_blockYanXuan")) return;
-  const blockYanXuan_question = (mutationsList) => {
-    for (const mutation of mutationsList) {
-      for (const target of mutation.addedNodes) {
-        if (target.nodeType != 1) continue;
-        if (
-          target.className === "List-item" ||
-          target.className === "Card AnswerCard"
-        ) {
-          if (
-            target.querySelector(
-              ".KfeCollection-AnswerTopCard-Container, .KfeCollection-PurchaseBtn",
-            )
-          ) {
-            target.hidden = true;
-          }
-        }
-      }
+  if (!menu_value('menu_blockYanXuan')) return
+  document.querySelectorAll('.List-item, .Card.AnswerCard').forEach(item => {
+    if (item.querySelector('.KfeCollection-AnswerTopCard-Container, .KfeCollection-PurchaseBtn')) {
+      item.hidden = true
     }
-  };
-
-  const blockYanXuan_question_answer = (mutationsList) => {
-    for (const mutation of mutationsList) {
-      for (const target of mutation.addedNodes) {
-        if (target.nodeType != 1) continue;
-        target
-          .querySelectorAll(".List-item, .Card.AnswerCard")
-          .forEach(function (item) {
-            if (
-              item.querySelector(
-                ".KfeCollection-AnswerTopCard-Container, .KfeCollection-PurchaseBtn",
-              )
-            ) {
-              item.hidden = true;
-            }
-          });
-      }
-    }
-  };
-
-  if (location.pathname.includes("/answer/")) {
-    // 回答页（就是只有三个回答的页面）
-    GlobalObserver.add(blockYanXuan_question_answer);
-  } else {
-    // 问题页（可以显示所有回答的页面）
-    GlobalObserver.add(blockYanXuan_question);
-  }
-
-  // 针对的是打开网页后直接加载的前面几个回答（上面哪些是针对动态加载的回答）
-  document
-    .querySelectorAll(".List-item, .Card.AnswerCard")
-    .forEach(function (item) {
-      if (
-        item.querySelector(
-          ".KfeCollection-AnswerTopCard-Container, .KfeCollection-PurchaseBtn",
-        )
-      ) {
-        item.hidden = true;
-      }
-    });
+  })
 }
 
-// 区分问题文章
+// ========== 热榜过滤（保留，Task 9 拆到 block-hot.js） ==========
 
 export function blockHotOther() {
   if (!menu_value("menu_blockTypeLiveHot")) return;
@@ -346,6 +114,3 @@ export function blockHotOther() {
   // 初始移除
   block();
 }
-
-// 将关注/推荐/热榜/专栏的选项去掉默认的点击事件改成静态链接（针对首页互相切换（知乎这里切换是动态加载的），为了避免功能交叉混乱
-// 针对所有页面

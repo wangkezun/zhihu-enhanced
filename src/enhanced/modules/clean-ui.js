@@ -116,18 +116,14 @@ export function cleanSearch() {
 // 快捷关闭悬浮评论（监听点击事件，点击网页两侧空白处）
 
 export function closeFloatingComments() {
-  // 每批 mutations 只做一次全文档查询（之前是每个 addedNode 查一次）
-  const closeFloatingCommentsModal = () => {
+  document.addEventListener("click", function (e) {
     const button = document.querySelector('button[aria-label="关闭"]');
-    if (button) {
-      button.parentElement.parentElement.onclick = function (event) {
-        if (event.target.parentElement == this) {
-          button.click();
-        }
-      };
+    if (!button) return;
+    const overlay = button.parentElement?.parentElement;
+    if (overlay && (e.target === overlay || e.target.parentElement === overlay)) {
+      button.click();
     }
-  };
-  GlobalObserver.add(closeFloatingCommentsModal);
+  }, true);
 }
 
 // 自定义 urlchange 事件（用来监听 URL 变化）

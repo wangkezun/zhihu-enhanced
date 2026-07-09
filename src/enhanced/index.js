@@ -1,6 +1,5 @@
 import { escapeHtml } from '../shared/escape-html.js';
 import { initMenuValues, menu_value, menu_setting, setMenuRegistrar } from '../shared/menu-framework.js';
-import { debounce } from '../shared/debounce.js';
 import { GlobalObserver } from '../shared/global-observer.js';
 import { UrlChangeManager, addUrlChangeEvent } from '../shared/url-change.js';
 
@@ -11,9 +10,9 @@ import { customBlockUsers, blockUsers } from './modules/block-users.js';
 import { rememberSelectedBlockKeyword, addSelectedKeywordToBlocklist, customBlockKeywords, blockKeywords } from './modules/block-keywords.js';
 import { blockType, blockYanXuan, blockHotOther } from './modules/block-type.js';
 import { cleanHighlightLink, removeLogin, cleanTitles, cleanSearch, closeFloatingComments } from './modules/clean-ui.js';
-import { topTime_, topTime_post, question_time } from './modules/time-display.js';
-import { originalPic } from './modules/original-pic.js';
-import { directLink } from './modules/direct-link.js';
+import { topTime_, topTime_post, question_time, createIncrementalTopTimeHandler } from './modules/time-display.js';
+import { originalPic, processAddedPics } from './modules/original-pic.js';
+import { directLink, processAddedLinks } from './modules/direct-link.js';
 import { question_author, questionRichTextMore, questionInvitation } from './modules/question-author.js';
 import { addTypeTips, addToQuestion } from './modules/type-tips.js';
 import { switchHome, switchHomeRecommend } from './modules/navigation.js';
@@ -171,11 +170,14 @@ function menu_switch(menu_status, Name, Tips) {
     cleanHighlightLink();
     originalPic();
     directLink();
-    var _debouncedPicAndLink = debounce(function () {
-      originalPic();
-      directLink();
-    }, 500);
-    GlobalObserver.add(_debouncedPicAndLink); // 全局：所有页面都需要
+    GlobalObserver.add(function (mutations) {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          processAddedPics(node);
+          processAddedLinks(node);
+        }
+      }
+    });
     if (location.hostname != "zhuanlan.zhihu.com") {
       if (location.pathname.includes("/column/") === false) cleanSearch();
       collapsedAnswer();
@@ -205,9 +207,7 @@ function menu_switch(menu_status, Name, Tips) {
         defaultCollapsedAnswer();
       }
       GlobalObserver.add(
-        debounce(function () {
-          topTime_(".ContentItem.AnswerItem", "ContentItem-meta");
-        }, 300),
+        createIncrementalTopTimeHandler(".ContentItem.AnswerItem", "ContentItem-meta"),
       );
       setTimeout(function () {
         question_time();
@@ -219,12 +219,10 @@ function menu_switch(menu_status, Name, Tips) {
       collapsedNowAnswer("main div");
       collapsedNowAnswer(".Search-container");
       GlobalObserver.add(
-        debounce(function () {
-          topTime_(
-            ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
-            "SearchItem-meta",
-          );
-        }, 300),
+        createIncrementalTopTimeHandler(
+          ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
+          "SearchItem-meta",
+        ),
       );
       addTypeTips();
       addToQuestion();
@@ -239,12 +237,10 @@ function menu_switch(menu_status, Name, Tips) {
       ) {
         collapsedNowAnswer("main.App-main");
         GlobalObserver.add(
-          debounce(function () {
-            topTime_(
-              ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
-              "ContentItem-meta",
-            );
-          }, 300),
+          createIncrementalTopTimeHandler(
+            ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
+            "ContentItem-meta",
+          ),
         );
         addTypeTips();
         addToQuestion();
@@ -263,12 +259,10 @@ function menu_switch(menu_status, Name, Tips) {
         collapsedAnswer();
         collapsedNowAnswer("main div");
         GlobalObserver.add(
-          debounce(function () {
-            topTime_(
-              ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
-              "ContentItem-meta",
-            );
-          }, 300),
+          createIncrementalTopTimeHandler(
+            ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
+            "ContentItem-meta",
+          ),
         );
         blockUsers();
       }, 300);
@@ -284,12 +278,10 @@ function menu_switch(menu_status, Name, Tips) {
       collapsedNowAnswer("main div");
       collapsedNowAnswer(".Profile-main");
       GlobalObserver.add(
-        debounce(function () {
-          topTime_(
-            ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
-            "ContentItem-meta",
-          );
-        }, 300),
+        createIncrementalTopTimeHandler(
+          ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
+          "ContentItem-meta",
+        ),
       );
       blockUsers("people");
       blockKeywords("people");
@@ -300,21 +292,17 @@ function menu_switch(menu_status, Name, Tips) {
       collapsedNowAnswer("main");
       collapsedNowAnswer(".CollectionsDetailPage");
       GlobalObserver.add(
-        debounce(function () {
-          topTime_(
-            ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
-            "ContentItem-meta",
-          );
-        }, 300),
+        createIncrementalTopTimeHandler(
+          ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
+          "ContentItem-meta",
+        ),
       );
       blockKeywords("collection");
     } else if (location.pathname.includes("/pin/")) {
       // 想法 //
       backToTop("main[role=main]");
       GlobalObserver.add(
-        debounce(function () {
-          topTime_(".ContentItem.PinItem", "ContentItem-meta");
-        }, 300),
+        createIncrementalTopTimeHandler(".ContentItem.PinItem", "ContentItem-meta"),
       );
     } else if (
       ["/", "/hot", "/follow", "/column-square", "/ring-feeds"].includes(
@@ -340,9 +328,7 @@ function menu_switch(menu_status, Name, Tips) {
       collapsedNowAnswer(".Topstory-container");
       if (location.pathname !== "/column-square") {
         GlobalObserver.add(
-          debounce(function () {
-            topTime_(".TopstoryItem", "ContentItem-meta");
-          }, 300),
+          createIncrementalTopTimeHandler(".TopstoryItem", "ContentItem-meta"),
         );
         addTypeTips();
         addToQuestion();

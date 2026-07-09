@@ -238,6 +238,7 @@ export function blockKeywords(type) {
             ) {
               content.textContent = "";
               originalNodes.forEach((n) => content.appendChild(n));
+              content.onclick = null;
             }
           };
           content.textContent = "[该评论已屏蔽，可点击显示]";

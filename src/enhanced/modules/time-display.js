@@ -1,19 +1,21 @@
 import { menu_value } from '../../shared/menu-framework.js';
 
+export function topTime_processItem(_this, classs) {
+  let t = _this.querySelector(".ContentItem-time");
+  if (!t) return;
+  if (
+    !t.classList.contains("full") &&
+    t.querySelector("a") &&
+    t.querySelector("a").textContent != null
+  ) {
+    topTime_allTime(t);
+    topTime_publishTop(t, _this, classs);
+  }
+}
+
 export function topTime_(css, classs) {
   document.querySelectorAll(css).forEach(function (_this) {
-    let t = _this.querySelector(".ContentItem-time");
-    if (!t) return;
-    if (
-      !t.classList.contains("full") &&
-      t.querySelector("a") &&
-      t.querySelector("a").textContent != null
-    ) {
-      // 完整显示时间
-      topTime_allTime(t);
-      // 发布时间置顶
-      topTime_publishTop(t, _this, classs);
-    }
+    topTime_processItem(_this, classs);
   });
 }
 
@@ -123,4 +125,16 @@ function getUTC8(t) {
   return _utc8Formatter.format(t).replace(/\//g, "-");
 }
 
-// 默认高清原图（无水印）
+export function createIncrementalTopTimeHandler(css, classs) {
+  return function (mutations) {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (node.nodeType !== Node.ELEMENT_NODE) continue;
+        if (node.matches?.(css)) topTime_processItem(node, classs);
+        const items = node.querySelectorAll?.(css);
+        if (items) for (const item of items) topTime_processItem(item, classs);
+      }
+    }
+  };
+}
+

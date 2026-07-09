@@ -53,6 +53,8 @@ export function blockType(type) {
 
 // ========== 屏蔽盐选内容 ==========
 
+export const SELECTOR = 'h2.ContentItem-title a:not(.zhihu_e_toQuestion), a.KfeCollection-PcCollegeCard-link, h2.SearchTopicHeader-Title a, .VideoAnswerPlayer, .ContentItem.PinItem'
+
 export const SELECTOR_YANXUAN = '.List-item, .Card.AnswerCard'
 
 export function processYanXuan(item) {

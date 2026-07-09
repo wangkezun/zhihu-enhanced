@@ -1,4 +1,3 @@
-import { GlobalObserver } from '../../shared/global-observer.js';
 import { menu_value } from '../../shared/menu-framework.js';
 
 // ========== 核心过滤函数（供 DomDispatcher process 使用） ==========
@@ -66,54 +65,3 @@ export function initYanXuan() {
   document.querySelectorAll(SELECTOR_YANXUAN).forEach(processYanXuan)
 }
 
-// ========== 热榜过滤（保留，Task 9 拆到 block-hot.js） ==========
-
-export function blockHotOther() {
-  if (!menu_value("menu_blockTypeLiveHot")) return;
-
-  const isQuestionItem = (hotItem) => {
-    const linkItem = hotItem.querySelector(".HotItem-content a");
-    if (linkItem === null) return false;
-    return /\/question\/\d+/.test(linkItem.href);
-  };
-
-  const block = () => {
-    removeLiveItems();
-    fixItemRank();
-  };
-
-  // 移除非问题的内容
-  const removeLiveItems = () => {
-    const hotItems = document.querySelectorAll(".HotList-list .HotItem");
-    for (const item of hotItems) {
-      if (!isQuestionItem(item)) item.remove();
-    }
-  };
-
-  // 修复排行榜序号
-  const fixItemRank = () => {
-    const hotItems = document.querySelectorAll(
-      ".HotList-list .HotItem:not([hidden])",
-    );
-    hotItems.forEach((item, index) => {
-      const rank = item.querySelector(".HotItem-index .HotItem-rank");
-      if (rank !== null) rank.innerText = index + 1;
-    });
-  };
-
-  const blockLive_content = (mutationsList) => {
-    for (const mutation of mutationsList) {
-      for (const target of mutation.addedNodes) {
-        if (target.nodeType != 1) continue;
-        if (target.classList.contains("HotItem")) {
-          block();
-        }
-      }
-    }
-  };
-
-  GlobalObserver.add(blockLive_content);
-
-  // 初始移除
-  block();
-}

@@ -8,7 +8,8 @@ import { addCollapseAllButton, enableDefaultCollapse } from './modules/collapse-
 import { blockLowCount } from './modules/block-low-count.js';
 import { customBlockUsers, blockUsers } from './modules/block-users.js';
 import { rememberSelectedBlockKeyword, addSelectedKeywordToBlocklist, customBlockKeywords, blockKeywords } from './modules/block-keywords.js';
-import { blockType, initYanXuan, blockHotOther } from './modules/block-type.js';
+import { blockHotOther } from './modules/block-hot.js';
+import { blockType, initYanXuan } from './modules/block-type.js';
 import { initHighlight, startLoginMonitor, cleanTitles, cleanSearch } from './modules/clean-ui.js';
 import { topTime_, topTime_post, question_time, createIncrementalTopTimeHandler } from './modules/time-display.js';
 import { init, process, SELECTOR } from './modules/original-pic.js';

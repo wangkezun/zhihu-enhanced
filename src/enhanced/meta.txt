@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Zhihu enhancement
-// @name:zh-CN   知乎增强
-// @name:zh-TW   知乎增強
-// @name:ru      Улучшение Zhihu
+// @name         Zhihu enhancement Remake
+// @name:zh-CN   知乎增强 Remake
+// @name:zh-TW   知乎增強 Remake
+// @name:ru      Улучшение Zhihu Remake
 // @version      2.3.28
 // @author       wangkezun
 // @description  A more personalized Zhihu experience~

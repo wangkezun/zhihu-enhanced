@@ -1,7 +1,6 @@
-import { escapeHtml } from '../shared/escape-html.js';
 import { initMenuValues, menu_value, menu_setting, setMenuRegistrar } from '../shared/menu-framework.js';
 import { GlobalObserver } from '../shared/global-observer.js';
-import { UrlChangeManager, addUrlChangeEvent } from '../shared/url-change.js';
+import { addUrlChangeEvent } from '../shared/url-change.js';
 
 // 功能模块
 import { addCollapseAllButton, enableDefaultCollapse } from './modules/collapse-answer.js';
@@ -11,7 +10,7 @@ import { rememberSelectedBlockKeyword, addSelectedKeywordToBlocklist, customBloc
 import { blockHotOther } from './modules/block-hot.js';
 import { blockType, initYanXuan } from './modules/block-type.js';
 import { initHighlight, startLoginMonitor, cleanTitles, cleanSearch } from './modules/clean-ui.js';
-import { topTime_, topTime_post, question_time, createIncrementalTopTimeHandler } from './modules/time-display.js';
+import { topTime_post, question_time, createIncrementalTopTimeHandler } from './modules/time-display.js';
 import { init } from './init.js';
 import { question_author, questionRichTextMore, questionInvitation } from './modules/question-author.js';
 import { addTypeTips, addToQuestion } from './modules/type-tips.js';

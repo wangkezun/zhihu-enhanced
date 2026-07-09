@@ -1,5 +1,5 @@
 import { menu_value } from '../../shared/menu-framework.js'
-import { getXpath } from '../../shared/dom-utils.js'
+
 
 // 移除高亮链接
 export const SELECTOR = 'a[data-za-not-track-link][href^="https://zhida.zhihu.com/search?"]'

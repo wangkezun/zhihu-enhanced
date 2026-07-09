@@ -11,7 +11,7 @@ import { rememberSelectedBlockKeyword, addSelectedKeywordToBlocklist, customBloc
 import { blockType, blockYanXuan, blockHotOther } from './modules/block-type.js';
 import { cleanHighlightLink, removeLogin, cleanTitles, cleanSearch, closeFloatingComments } from './modules/clean-ui.js';
 import { topTime_, topTime_post, question_time, createIncrementalTopTimeHandler } from './modules/time-display.js';
-import { originalPic, processAddedPics } from './modules/original-pic.js';
+import { init, process, SELECTOR } from './modules/original-pic.js';
 import { directLink, processAddedLinks } from './modules/direct-link.js';
 import { question_author, questionRichTextMore, questionInvitation } from './modules/question-author.js';
 import { addTypeTips, addToQuestion } from './modules/type-tips.js';
@@ -168,12 +168,15 @@ function menu_switch(menu_status, Name, Tips) {
   function start() {
     switchHome();
     cleanHighlightLink();
-    originalPic();
+    init();
     directLink();
     GlobalObserver.add(function (mutations) {
       for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
-          processAddedPics(node);
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            if (node.matches?.(SELECTOR)) process(node);
+            node.querySelectorAll?.(SELECTOR).forEach(process);
+          }
           processAddedLinks(node);
         }
       }

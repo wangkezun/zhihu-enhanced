@@ -1,4 +1,3 @@
-import { GlobalObserver } from '../../shared/global-observer.js'
 import { UrlChangeManager } from '../../shared/url-change.js'
 import { menu_value } from '../../shared/menu-framework.js'
 import { isElementInViewport, isElementInViewport_ } from '../../shared/dom-utils.js'

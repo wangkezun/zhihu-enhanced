@@ -8,7 +8,7 @@ import { addCollapseAllButton, enableDefaultCollapse } from './modules/collapse-
 import { blockLowCount } from './modules/block-low-count.js';
 import { customBlockUsers, blockUsers } from './modules/block-users.js';
 import { rememberSelectedBlockKeyword, addSelectedKeywordToBlocklist, customBlockKeywords, blockKeywords } from './modules/block-keywords.js';
-import { blockType, blockYanXuan, blockHotOther } from './modules/block-type.js';
+import { blockType, initYanXuan, blockHotOther } from './modules/block-type.js';
 import { initHighlight, startLoginMonitor, cleanTitles, cleanSearch } from './modules/clean-ui.js';
 import { topTime_, topTime_post, question_time, createIncrementalTopTimeHandler } from './modules/time-display.js';
 import { init, process, SELECTOR } from './modules/original-pic.js';
@@ -203,7 +203,7 @@ function menu_switch(menu_status, Name, Tips) {
           });
         }
         blockUsers("question");
-        blockYanXuan();
+        initYanXuan();
         blockType("question");
         enableDefaultCollapse();
       }

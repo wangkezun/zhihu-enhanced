@@ -52,15 +52,18 @@ export function blockType(type) {
   document.querySelectorAll(sel).forEach(process)
 }
 
-// ========== 屏蔽盐选内容（保留，Task 8e 添加 SELECTOR_YANXUAN + processYanXuan） ==========
+// ========== 屏蔽盐选内容 ==========
 
-export function blockYanXuan() {
-  if (!menu_value('menu_blockYanXuan')) return
-  document.querySelectorAll('.List-item, .Card.AnswerCard').forEach(item => {
-    if (item.querySelector('.KfeCollection-AnswerTopCard-Container, .KfeCollection-PurchaseBtn')) {
-      item.hidden = true
-    }
-  })
+export const SELECTOR_YANXUAN = '.List-item, .Card.AnswerCard'
+
+export function processYanXuan(item) {
+  if (item.querySelector('.KfeCollection-AnswerTopCard-Container, .KfeCollection-PurchaseBtn')) {
+    item.hidden = true
+  }
+}
+
+export function initYanXuan() {
+  document.querySelectorAll(SELECTOR_YANXUAN).forEach(processYanXuan)
 }
 
 // ========== 热榜过滤（保留，Task 9 拆到 block-hot.js） ==========

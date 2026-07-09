@@ -1,13 +1,20 @@
 import { menu_value } from '../shared/menu-framework.js'
 import { collapseCurrentAnswer } from './modules/collapse-answer.js'
 
-const BLANK_CONTAINER = '.Topstory-container'
+const BLANK_CONTAINERS = [
+  '.Topstory-container',
+  '.Question-main',
+  '.Search-container',
+  '.CollectionsDetailPage',
+  '.Post-Row-Content',
+  '.Profile-main',
+]
 const INVITE_TOGGLE_CLS = 'script-invite-toggle'
 
 function isSideBlank(event) {
   const el = event.target
   if (el.closest('a, button, input, textarea, img, video, [role="button"]')) return false
-  const container = document.querySelector(BLANK_CONTAINER)
+  const container = BLANK_CONTAINERS.reduce((found, sel) => found || document.querySelector(sel), null)
   if (!container) return false
   const rect = container.getBoundingClientRect()
   return event.clientX < rect.left || event.clientX > rect.right

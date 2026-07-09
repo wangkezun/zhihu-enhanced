@@ -17,6 +17,7 @@ import { init as dlInit, process as dlProcess, SELECTOR as dlSelector } from './
 import { question_author, questionRichTextMore, questionInvitation } from './modules/question-author.js';
 import { addTypeTips, addToQuestion } from './modules/type-tips.js';
 import { switchHome, switchHomeRecommend } from './modules/navigation.js';
+import { initEvents } from './events.js';
 
 "use strict";
 
@@ -168,6 +169,7 @@ function menu_switch(menu_status, Name, Tips) {
 
   function start() {
     switchHome();
+    initEvents();
     initHighlight();
     init();
     dlInit();

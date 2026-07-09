@@ -138,3 +138,13 @@ export function createIncrementalTopTimeHandler(css, classs) {
   };
 }
 
+export const SELECTOR = '.ContentItem.AnswerItem, .ContentItem.ArticleItem, .TopstoryItem, .PinItem'
+
+export function process(item) {
+  topTime_processItem(item, 'ContentItem-meta')
+}
+
+export function init() {
+  topTime_(SELECTOR, 'ContentItem-meta')
+}
+

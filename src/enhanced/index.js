@@ -4,12 +4,12 @@ import { GlobalObserver } from '../shared/global-observer.js';
 import { UrlChangeManager, addUrlChangeEvent } from '../shared/url-change.js';
 
 // 功能模块
-import { collapsedNowAnswer, collapsedAnswer, defaultCollapsedAnswer, backToTop } from './modules/collapse-answer.js';
+import { addCollapseAllButton, enableDefaultCollapse } from './modules/collapse-answer.js';
 import { blockLowCount } from './modules/block-low-count.js';
 import { customBlockUsers, blockUsers } from './modules/block-users.js';
 import { rememberSelectedBlockKeyword, addSelectedKeywordToBlocklist, customBlockKeywords, blockKeywords } from './modules/block-keywords.js';
 import { blockType, blockYanXuan, blockHotOther } from './modules/block-type.js';
-import { cleanHighlightLink, removeLogin, cleanTitles, cleanSearch, closeFloatingComments } from './modules/clean-ui.js';
+import { cleanHighlightLink, removeLogin, cleanTitles, cleanSearch } from './modules/clean-ui.js';
 import { topTime_, topTime_post, question_time, createIncrementalTopTimeHandler } from './modules/time-display.js';
 import { init, process, SELECTOR } from './modules/original-pic.js';
 import { init as dlInit, process as dlProcess, SELECTOR as dlSelector } from './modules/direct-link.js';
@@ -184,9 +184,8 @@ function menu_switch(menu_status, Name, Tips) {
     });
     if (location.hostname != "zhuanlan.zhihu.com") {
       if (location.pathname.includes("/column/") === false) cleanSearch();
-      collapsedAnswer();
+      addCollapseAllButton();
     }
-    closeFloatingComments();
     blockKeywords("comment");
 
     if (
@@ -195,8 +194,6 @@ function menu_switch(menu_status, Name, Tips) {
     ) {
       //       回答页 //
       if (location.pathname.includes("waiting") === false) {
-        collapsedNowAnswer(".QuestionPage");
-        collapsedNowAnswer(".Question-main");
         questionRichTextMore();
         if (location.pathname.includes("answer") === false) {
           blockLowCount("question");
@@ -208,7 +205,7 @@ function menu_switch(menu_status, Name, Tips) {
         blockUsers("question");
         blockYanXuan();
         blockType("question");
-        defaultCollapsedAnswer();
+        enableDefaultCollapse();
       }
       GlobalObserver.add(
         createIncrementalTopTimeHandler(".ContentItem.AnswerItem", "ContentItem-meta"),
@@ -220,8 +217,6 @@ function menu_switch(menu_status, Name, Tips) {
       questionInvitation();
     } else if (location.pathname === "/search") {
       //          搜索结果页 //
-      collapsedNowAnswer("main div");
-      collapsedNowAnswer(".Search-container");
       GlobalObserver.add(
         createIncrementalTopTimeHandler(
           ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
@@ -239,7 +234,6 @@ function menu_switch(menu_status, Name, Tips) {
         location.pathname.includes("/hot") ||
         location.href.includes("/top-answers")
       ) {
-        collapsedNowAnswer("main.App-main");
         GlobalObserver.add(
           createIncrementalTopTimeHandler(
             ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
@@ -253,15 +247,12 @@ function menu_switch(menu_status, Name, Tips) {
       }
     } else if (location.hostname === "zhuanlan.zhihu.com") {
       //    文章 //
-      backToTop(".Post-content");
-      backToTop(".Post-Row-Content");
       setTimeout(topTime_post, 300);
       blockUsers();
     } else if (location.pathname.includes("/column/")) {
       //    专栏 //
       setTimeout(function () {
-        collapsedAnswer();
-        collapsedNowAnswer("main div");
+        addCollapseAllButton();
         GlobalObserver.add(
           createIncrementalTopTimeHandler(
             ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
@@ -279,8 +270,6 @@ function menu_switch(menu_status, Name, Tips) {
         addTypeTips();
         addToQuestion();
       }
-      collapsedNowAnswer("main div");
-      collapsedNowAnswer(".Profile-main");
       GlobalObserver.add(
         createIncrementalTopTimeHandler(
           ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
@@ -293,8 +282,6 @@ function menu_switch(menu_status, Name, Tips) {
       // 收藏夹 //
       addTypeTips();
       addToQuestion();
-      collapsedNowAnswer("main");
-      collapsedNowAnswer(".CollectionsDetailPage");
       GlobalObserver.add(
         createIncrementalTopTimeHandler(
           ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
@@ -304,7 +291,6 @@ function menu_switch(menu_status, Name, Tips) {
       blockKeywords("collection");
     } else if (location.pathname.includes("/pin/")) {
       // 想法 //
-      backToTop("main[role=main]");
       GlobalObserver.add(
         createIncrementalTopTimeHandler(".ContentItem.PinItem", "ContentItem-meta"),
       );
@@ -328,8 +314,6 @@ function menu_switch(menu_status, Name, Tips) {
         ).textContent = style;
       }
 
-      collapsedNowAnswer("main div");
-      collapsedNowAnswer(".Topstory-container");
       if (location.pathname !== "/column-square") {
         GlobalObserver.add(
           createIncrementalTopTimeHandler(".TopstoryItem", "ContentItem-meta"),

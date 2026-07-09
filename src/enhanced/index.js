@@ -9,7 +9,7 @@ import { blockLowCount } from './modules/block-low-count.js';
 import { customBlockUsers, blockUsers } from './modules/block-users.js';
 import { rememberSelectedBlockKeyword, addSelectedKeywordToBlocklist, customBlockKeywords, blockKeywords } from './modules/block-keywords.js';
 import { blockType, blockYanXuan, blockHotOther } from './modules/block-type.js';
-import { cleanHighlightLink, removeLogin, cleanTitles, cleanSearch } from './modules/clean-ui.js';
+import { initHighlight, startLoginMonitor, cleanTitles, cleanSearch } from './modules/clean-ui.js';
 import { topTime_, topTime_post, question_time, createIncrementalTopTimeHandler } from './modules/time-display.js';
 import { init, process, SELECTOR } from './modules/original-pic.js';
 import { init as dlInit, process as dlProcess, SELECTOR as dlSelector } from './modules/direct-link.js';
@@ -152,7 +152,7 @@ function menu_switch(menu_status, Name, Tips) {
   }
   rememberSelectedBlockKeyword();
 
-  removeLogin();
+  startLoginMonitor();
   cleanTitles();
 
   if (
@@ -167,7 +167,7 @@ function menu_switch(menu_status, Name, Tips) {
 
   function start() {
     switchHome();
-    cleanHighlightLink();
+    initHighlight();
     init();
     dlInit();
     GlobalObserver.add(function (mutations) {

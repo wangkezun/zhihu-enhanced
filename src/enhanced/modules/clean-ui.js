@@ -1,77 +1,44 @@
-import { GlobalObserver } from '../../shared/global-observer.js';
-import { menu_value } from '../../shared/menu-framework.js';
-import { getXpath } from '../../shared/dom-utils.js';
+import { menu_value } from '../../shared/menu-framework.js'
+import { getXpath } from '../../shared/dom-utils.js'
 
-export function cleanHighlightLink() {
-  if (!menu_value("menu_cleanHighlightLink")) return;
-  const callback = (mutationsList) => {
-    for (const mutation of mutationsList) {
-      for (const target of mutation.addedNodes) {
-        if (target.nodeType != 1 || target.tagName != "A") continue;
-        if (
-          target.dataset.zaNotTrackLink &&
-          target.href.includes("https://zhida.zhihu.com/search?")
-        ) {
-          target.parentElement.replaceWith(target.textContent);
-        }
-      }
-    }
-  };
-  GlobalObserver.add(callback);
+// 移除高亮链接
+export const SELECTOR = 'a[data-za-not-track-link][href^="https://zhida.zhihu.com/search?"]'
 
-  // 针对的是打开网页后直接加载的前面几个回答（上面哪些是针对动态加载的回答）
-  document
-    .querySelectorAll(
-      'span > a[data-za-not-track-link][href^="https://zhida.zhihu.com/search?"]',
-    )
-    .forEach((e) => e.parentElement.replaceWith(e.textContent));
+export function process(a) {
+  const span = a.parentElement
+  if (span) span.replaceWith(a.textContent)
 }
 
-// 屏蔽盐选内容
+export function initHighlight() {
+  document.querySelectorAll(SELECTOR).forEach(process)
+}
 
-export function removeLogin() {
-  const removeLoginModal = (mutationsList) => {
-    for (const mutation of mutationsList) {
-      for (const target of mutation.addedNodes) {
-        if (target.nodeType != 1) continue;
-        // 登录弹窗容器都是 DIV，粗筛掉其他节点，避免每节点跑 XPath
-        if (target.tagName !== "DIV") continue;
-        if (target.querySelector(".signFlowModal")) {
-          let button = target.querySelector(
-            ".Button.Modal-closeButton.Button--plain",
-          );
-          if (button) button.click();
-        } else if (getXpath('//button[text()="立即登录/注册"]', target)) {
-          target.remove();
+// 移除登录弹窗
+let _loginObserver = null
+
+export function startLoginMonitor() {
+  if (location.hostname === 'zhuanlan.zhihu.com') {
+    if (document.querySelector('.ColumnPageHeader-profile>.AppHeader-menu')) return
+  } else {
+    if (document.querySelector('.AppHeader-profile>.AppHeader-menu')) return
+  }
+  if (_loginObserver) return
+  _loginObserver = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      for (const n of m.addedNodes) {
+        if (n.nodeType !== 1 || n.tagName !== 'DIV') continue
+        if (n.querySelector('.signFlowModal')) {
+          const btn = n.querySelector('.Button.Modal-closeButton.Button--plain')
+          if (btn) btn.click()
+        } else if (document.evaluate(
+          '//button[text()="立即登录/注册"]', n, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null
+        ).singleNodeValue) {
+          n.remove()
         }
       }
     }
-  };
-
-  // 检查是否登录
-  function isLoggedIn() {
-    if (location.hostname === "zhuanlan.zhihu.com") {
-      return !!document.querySelector(".ColumnPageHeader-profile>.AppHeader-menu");
-    }
-    return !!document.querySelector(".AppHeader-profile>.AppHeader-menu");
-  }
-
-  // 未登录时才会监听并移除登录弹窗
-  if (!isLoggedIn()) {
-    GlobalObserver.add(removeLoginModal);
-    const loginButton = getXpath('//button[text()="登录/注册"]');
-    if (loginButton) {
-      loginButton.outerHTML =
-        '<a class="Button AppHeader-login Button--blue" href="https://www.zhihu.com/signin" target="_blank">登录/注册</a>';
-    }
-    if (location.hostname !== "zhuanlan.zhihu.com") {
-      // 屏蔽问题页中间的登录提示
-      document.head.appendChild(
-        document.createElement("style"),
-      ).textContent =
-        ".Question-mainColumnLogin, button.AppHeader-login {display: none !important;}";
-    }
-  }
+  })
+  _loginObserver.observe(document.body, { childList: true, subtree: true })
 }
 
 // 净化标题消息
@@ -112,18 +79,3 @@ export function cleanSearch() {
   ).textContent =
     '.AutoComplete-group > .SearchBar-label:not(.SearchBar-label--history), .AutoComplete-group > [id^="AutoComplete2-topSearch-"], .AutoComplete-group > [id^="AutoComplete3-topSearch-"] {display: none !important;}';
 }
-
-// 快捷关闭悬浮评论（监听点击事件，点击网页两侧空白处）
-
-export function closeFloatingComments() {
-  document.addEventListener("click", function (e) {
-    const button = document.querySelector('button[aria-label="关闭"]');
-    if (!button) return;
-    const overlay = button.parentElement?.parentElement;
-    if (overlay && (e.target === overlay || e.target.parentElement === overlay)) {
-      button.click();
-    }
-  }, true);
-}
-
-// 自定义 urlchange 事件（用来监听 URL 变化）

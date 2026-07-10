@@ -122,11 +122,11 @@ export function processComment(content) {
   content.querySelectorAll('img.sticker[alt]').forEach(img => { text += img.alt.toLowerCase() })
   for (const kw of keywords) {
     if (text.includes(kw)) {
-      const originalNodes = Array.from(content.childNodes).map(n => n.cloneNode(true))
+      const originalContent = document.createDocumentFragment()
+      while (content.firstChild) originalContent.appendChild(content.firstChild)
       content.onclick = (e) => {
         if (e.target === content && content.textContent === '[该评论已屏蔽，可点击显示]') {
-          content.textContent = ''
-          originalNodes.forEach(n => content.appendChild(n))
+          content.replaceChildren(originalContent)
           content.onclick = null
         }
       }

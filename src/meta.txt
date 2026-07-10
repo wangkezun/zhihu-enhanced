@@ -28,4 +28,6 @@
 // @namespace    https://github.com/wangkezun/zhihu-enhanced
 // @supportURL   https://github.com/wangkezun/zhihu-enhanced
 // @homepageURL  https://greasyfork.org/zh-CN/scripts/586220-zhihu-enhancement-remake
+// @updateURL    https://greasyfork.org/zh-CN/scripts/586220-zhihu-enhancement-remake.update.js
+// @downloadURL  https://github.com/wangkezun/zhihu-enhanced/releases/latest/download/Zhihu-Enhanced.user.js
 // ==/UserScript==

@@ -1,5 +1,5 @@
-import { menu_value, refreshMenu } from '../../shared/menu-framework.js'
-import { escapeHtml } from '../../shared/escape-html.js'
+import { menu_value, refreshMenu } from '../shared/menu-framework.js'
+import { escapeHtml } from '../shared/escape-html.js'
 
 function getUsers() {
   return menu_value('menu_customBlockUsers') || []

@@ -1,6 +1,6 @@
-import { GlobalObserver } from '../../shared/global-observer.js';
-import { escapeHtml } from '../../shared/escape-html.js';
-import { menu_value } from '../../shared/menu-framework.js';
+import { GlobalObserver } from '../shared/global-observer.js';
+import { escapeHtml } from '../shared/escape-html.js';
+import { menu_value } from '../shared/menu-framework.js';
 
 export function question_author() {
   try {

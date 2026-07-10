@@ -25,7 +25,7 @@
 // @sandbox      JavaScript
 // @license      GPL-3.0 License
 // @run-at       document-end
-// @namespace    https://github.com/wangkezun/zhihu-js
-// @supportURL   https://github.com/wangkezun/zhihu-js
+// @namespace    https://github.com/wangkezun/zhihu-enhanced
+// @supportURL   https://github.com/wangkezun/zhihu-enhanced
 // @homepageURL  https://greasyfork.org/zh-CN/scripts/586220-zhihu-enhancement-remake
 // ==/UserScript==

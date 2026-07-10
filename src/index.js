@@ -1,6 +1,6 @@
-import { initMenuValues, menu_value, menu_setting, setMenuRegistrar } from '../shared/menu-framework.js';
-import { GlobalObserver } from '../shared/global-observer.js';
-import { addUrlChangeEvent } from '../shared/url-change.js';
+import { initMenuValues, menu_value, menu_setting, setMenuRegistrar } from './shared/menu-framework.js';
+import { GlobalObserver } from './shared/global-observer.js';
+import { addUrlChangeEvent } from './shared/url-change.js';
 
 // 功能模块
 import { addCollapseAllButton, enableDefaultCollapse } from './modules/collapse-answer.js';

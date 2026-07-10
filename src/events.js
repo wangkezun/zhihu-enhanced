@@ -1,4 +1,4 @@
-import { menu_value } from '../shared/menu-framework.js'
+import { menu_value } from './shared/menu-framework.js'
 import { collapseCurrentAnswer } from './modules/collapse-answer.js'
 
 const BLANK_CONTAINERS = [

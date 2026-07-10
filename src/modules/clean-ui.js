@@ -1,4 +1,4 @@
-import { menu_value } from '../../shared/menu-framework.js'
+import { menu_value } from '../shared/menu-framework.js'
 
 
 // 移除高亮链接

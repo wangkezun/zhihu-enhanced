@@ -1,7 +1,7 @@
-import { GlobalObserver } from '../../shared/global-observer.js';
-import { UrlChangeManager } from '../../shared/url-change.js';
-import { menu_value } from '../../shared/menu-framework.js';
-import { escapeHtml } from '../../shared/escape-html.js';
+import { GlobalObserver } from '../shared/global-observer.js';
+import { UrlChangeManager } from '../shared/url-change.js';
+import { menu_value } from '../shared/menu-framework.js';
+import { escapeHtml } from '../shared/escape-html.js';
 
 export function addTypeTips() {
   if (!menu_value("menu_typeTips")) return;

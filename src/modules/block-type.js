@@ -1,4 +1,4 @@
-import { menu_value } from '../../shared/menu-framework.js';
+import { menu_value } from '../shared/menu-framework.js';
 
 // ========== 核心过滤函数（供 DomDispatcher process 使用） ==========
 

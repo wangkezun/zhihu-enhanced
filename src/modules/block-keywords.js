@@ -1,4 +1,4 @@
-import { menu_value, refreshMenu } from '../../shared/menu-framework.js';
+import { menu_value, refreshMenu } from '../shared/menu-framework.js';
 
 var selectedTextForBlockKeywords = "";
 

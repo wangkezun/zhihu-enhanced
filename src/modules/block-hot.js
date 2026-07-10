@@ -1,5 +1,5 @@
-import { menu_value } from '../../shared/menu-framework.js'
-import { GlobalObserver } from '../../shared/global-observer.js'
+import { menu_value } from '../shared/menu-framework.js'
+import { GlobalObserver } from '../shared/global-observer.js'
 
 export function blockHotOther() {
   if (!menu_value('menu_blockTypeLiveHot')) return

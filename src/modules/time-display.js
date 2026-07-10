@@ -1,4 +1,4 @@
-import { menu_value } from '../../shared/menu-framework.js';
+import { menu_value } from '../shared/menu-framework.js';
 
 export function topTime_processItem(_this, classs) {
   let t = _this.querySelector(".ContentItem-time");

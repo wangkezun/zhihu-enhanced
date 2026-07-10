@@ -65,6 +65,7 @@ export function cleanSearch() {
   if (!menu_value("menu_cleanSearch")) return;
 
   const el = document.querySelector(".SearchBar-input > input");
+  if (!el) return;
   const observer = new MutationObserver((mutationsList) => {
     if (
       mutationsList[0].attributeName === "placeholder" &&

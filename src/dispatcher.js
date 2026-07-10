@@ -1,4 +1,4 @@
-export class DomDispatcher {
+class DomDispatcherManager {
   constructor() {
     this._processors = new Map()
     this._observer = null
@@ -63,3 +63,6 @@ export class DomDispatcher {
     }
   }
 }
+
+// 全局只需要一个 DOM 分发器。导出单例，避免调用方误把实例方法当作静态方法。
+export const DomDispatcher = new DomDispatcherManager()

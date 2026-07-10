@@ -4,6 +4,8 @@ import { collapseCurrentAnswer } from './modules/collapse-answer.js'
 const BLANK_CONTAINERS = [
   '.Topstory-container',
   '.Question-main',
+  '.Question-mainColumn',
+  '.QuestionPage',
   '.Search-container',
   '.CollectionsDetailPage',
   '.Post-Row-Content',
@@ -14,10 +16,20 @@ const INVITE_TOGGLE_CLS = 'script-invite-toggle'
 function isSideBlank(event) {
   const el = event.target
   if (el.closest('a, button, input, textarea, img, video, [role="button"]')) return false
+
   const container = BLANK_CONTAINERS.reduce((found, sel) => found || document.querySelector(sel), null)
-  if (!container) return false
-  const rect = container.getBoundingClientRect()
-  return event.clientX < rect.left || event.clientX > rect.right
+  if (container) {
+    const rect = container.getBoundingClientRect()
+    const sideSpace = (window.innerWidth - rect.width) / 2
+    // 容器两侧有明显留白时 (≥3% 视口宽)，用容器边界判断
+    if (sideSpace >= window.innerWidth * 0.03) {
+      return event.clientX < rect.left || event.clientX > rect.right
+    }
+  }
+
+  // 兜底：点击在视口外侧 20% 区域
+  const threshold = window.innerWidth * 0.2
+  return event.clientX < threshold || event.clientX > window.innerWidth - threshold
 }
 
 function onCollapseClick(e) {

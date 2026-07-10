@@ -117,27 +117,33 @@ export function addCollapseAllButton() {
 // ========== 默认收起回答 ==========
 
 let collapsedObserver = null
+function collapseRichContent(rc) {
+  if (rc.hasAttribute('script-collapsed')) return
+  const inner = rc.querySelector('.RichContent-inner')
+  if (!inner || inner.offsetHeight < 400) return
+  const btn = rc.querySelector(
+    '.ContentItem-actions.Sticky [data-zop-retract-question]'
+  )
+  if (!btn) return
+  rc.setAttribute('script-collapsed', '')
+  btn.click()
+}
+
 function collapsedAnswerHandler(mutations) {
   for (const mutation of mutations) {
     if (mutation.target.nodeType !== Node.ELEMENT_NODE) continue
-    if (mutation.target.hasAttribute('script-collapsed')) continue
     if (mutation.target.classList.contains('RichContent')) {
       for (const n of mutation.addedNodes) {
         if (n.nodeType !== Node.ELEMENT_NODE) continue
         if (n.className !== 'RichContent-inner') continue
         if (n.offsetHeight < 400) break
-        const btn = mutation.target.querySelector(
-          '.ContentItem-actions.Sticky [data-zop-retract-question]'
-        )
-        if (btn) {
-          mutation.target.setAttribute('script-collapsed', '')
-          btn.click()
-          break
-        }
+        collapseRichContent(mutation.target)
+        break
       }
     } else if (
       mutation.target.tagName === 'DIV' && !mutation.target.style.cssText && !mutation.target.className
     ) {
+      if (mutation.target.hasAttribute('script-collapsed')) continue
       const parent = mutation.target.parentElement
       if (!parent || parent.hasAttribute('script-collapsed')) continue
       const btn = mutation.target.querySelector(
@@ -147,6 +153,14 @@ function collapsedAnswerHandler(mutations) {
         parent.setAttribute('script-collapsed', '')
         btn.click()
       }
+    }
+    // 处理整体插入的回答卡片（mutation.target 是父容器）
+    for (const node of mutation.addedNodes) {
+      if (node.nodeType !== Node.ELEMENT_NODE) continue
+      const targets = node.classList.contains('RichContent')
+        ? [node]
+        : node.querySelectorAll('.RichContent')
+      for (const rc of targets) collapseRichContent(rc)
     }
   }
 }

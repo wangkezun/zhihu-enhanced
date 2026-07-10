@@ -13,17 +13,32 @@ export function blockHotOther() {
       if (rank) rank.innerText = i + 1
     })
   }
-  const block = () => {
-    document.querySelectorAll('.HotList-list .HotItem').forEach(item => {
-      if (!isQuestion(item)) item.remove()
-    })
-    fixRank()
+  const processItem = (item) => {
+    if (!isQuestion(item)) item.remove()
   }
-  block()
+  document.querySelectorAll('.HotList-list .HotItem').forEach(processItem)
+  fixRank()
+
+  let rankUpdatePending = false
+  const scheduleRankUpdate = () => {
+    if (rankUpdatePending) return
+    rankUpdatePending = true
+    queueMicrotask(() => {
+      rankUpdatePending = false
+      fixRank()
+    })
+  }
+
   GlobalObserver.add((mutations) => {
     for (const m of mutations) {
       for (const n of m.addedNodes) {
-        if (n.nodeType === 1 && n.classList?.contains('HotItem')) block()
+        if (n.nodeType !== Node.ELEMENT_NODE) continue
+        const items = n.matches?.('.HotList-list .HotItem')
+          ? [n, ...n.querySelectorAll('.HotList-list .HotItem')]
+          : n.querySelectorAll?.('.HotList-list .HotItem')
+        if (!items?.length) continue
+        items.forEach(processItem)
+        scheduleRankUpdate()
       }
     }
   })

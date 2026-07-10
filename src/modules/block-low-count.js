@@ -25,6 +25,22 @@ function shouldBlock(item, upvoteMin, commentMin) {
   return false
 }
 
+export const SELECTOR = '.List-item, .Card.TopstoryItem'
+
+function getPageType() {
+  if (location.pathname.includes('/question/')) return 'question'
+  if (location.pathname === '/follow') return 'follow'
+  return 'index'
+}
+
+export function process(item) {
+  const type = getPageType()
+  if (shouldBlock(item, getUpvoteMin(type), getCommentMin(type))) {
+    item.hidden = true
+    item.style.display = 'none'
+  }
+}
+
 export function makeProcessor(type) {
   const upvoteMin = getUpvoteMin(type)
   const commentMin = getCommentMin(type)

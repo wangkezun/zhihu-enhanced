@@ -5,7 +5,7 @@ import { SELECTOR as ds_SELECTOR, process as ds_process, init as ds_init } from 
 import { SELECTOR as op_SELECTOR, process as op_process, init as op_init } from './modules/original-pic.js'
 import { SELECTOR as td_SELECTOR, process as td_process, init as td_init } from './modules/time-display.js'
 import { SELECTOR as bt_SELECTOR, process as bt_process } from './modules/block-type.js'
-import { makeProcessor as bk_makeProcessor } from './modules/block-low-count.js'
+import { SELECTOR as blc_SELECTOR, process as blc_process } from './modules/block-low-count.js'
 import { SELECTOR_TITLE as bk_SELECTOR_TITLE, processTitle as bk_processTitle, SELECTOR_COMMENT as bk_SELECTOR_COMMENT, processComment as bk_processComment } from './modules/block-keywords.js'
 import { SELECTOR as bu_SELECTOR, process as bu_process, SELECTOR_COMMENT as bu_SELECTOR_COMMENT, processComment as bu_processComment, init as bu_init } from './modules/block-users.js'
 import { SELECTOR_YANXUAN as byx_SELECTOR, processYanXuan as byx_process, initYanXuan as byx_init } from './modules/block-type.js'
@@ -22,6 +22,7 @@ export function init() {
   DomDispatcher.register(bu_SELECTOR, bu_process)
   DomDispatcher.register(bu_SELECTOR_COMMENT, bu_processComment)
   DomDispatcher.register(byx_SELECTOR, byx_process)
+  DomDispatcher.register(blc_SELECTOR, blc_process)
 
   DomDispatcher.start()
 
@@ -31,7 +32,4 @@ export function init() {
   bu_init()
   byx_init()
 
-  bk_makeProcessor('Answer')()
-  bk_makeProcessor('Article')()
-  bk_makeProcessor('Pin')()
 }

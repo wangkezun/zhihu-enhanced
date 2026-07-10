@@ -1,5 +1,4 @@
 import { initMenuValues, menu_value, menu_setting, setMenuRegistrar } from './shared/menu-framework.js';
-import { GlobalObserver } from './shared/global-observer.js';
 import { addUrlChangeEvent } from './shared/url-change.js';
 
 // 功能模块
@@ -10,7 +9,7 @@ import { rememberSelectedBlockKeyword, addSelectedKeywordToBlocklist, customBloc
 import { blockHotOther } from './modules/block-hot.js';
 import { blockType, initYanXuan } from './modules/block-type.js';
 import { initHighlight, startLoginMonitor, cleanTitles, cleanSearch } from './modules/clean-ui.js';
-import { topTime_post, question_time, createIncrementalTopTimeHandler } from './modules/time-display.js';
+import { topTime_post, question_time } from './modules/time-display.js';
 import { init } from './init.js';
 import { question_author, questionRichTextMore, questionInvitation } from './modules/question-author.js';
 import { addTypeTips, addToQuestion } from './modules/type-tips.js';
@@ -195,9 +194,6 @@ function menu_switch(menu_status, Name, Tips) {
         blockType("question");
         enableDefaultCollapse();
       }
-      GlobalObserver.add(
-        createIncrementalTopTimeHandler(".ContentItem.AnswerItem", "ContentItem-meta"),
-      );
       setTimeout(function () {
         question_time();
         question_author();
@@ -205,12 +201,6 @@ function menu_switch(menu_status, Name, Tips) {
       questionInvitation();
     } else if (location.pathname === "/search") {
       //          搜索结果页 //
-      GlobalObserver.add(
-        createIncrementalTopTimeHandler(
-          ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
-          "SearchItem-meta",
-        ),
-      );
       addTypeTips();
       addToQuestion();
       blockUsers("search");
@@ -222,12 +212,6 @@ function menu_switch(menu_status, Name, Tips) {
         location.pathname.includes("/hot") ||
         location.href.includes("/top-answers")
       ) {
-        GlobalObserver.add(
-          createIncrementalTopTimeHandler(
-            ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
-            "ContentItem-meta",
-          ),
-        );
         addTypeTips();
         addToQuestion();
         blockUsers("topic");
@@ -241,12 +225,6 @@ function menu_switch(menu_status, Name, Tips) {
       //    专栏 //
       setTimeout(function () {
         addCollapseAllButton();
-        GlobalObserver.add(
-          createIncrementalTopTimeHandler(
-            ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
-            "ContentItem-meta",
-          ),
-        );
         blockUsers();
       }, 300);
     } else if (
@@ -258,30 +236,15 @@ function menu_switch(menu_status, Name, Tips) {
         addTypeTips();
         addToQuestion();
       }
-      GlobalObserver.add(
-        createIncrementalTopTimeHandler(
-          ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
-          "ContentItem-meta",
-        ),
-      );
       blockUsers("people");
       blockKeywords("people");
     } else if (location.pathname.includes("/collection/")) {
       // 收藏夹 //
       addTypeTips();
       addToQuestion();
-      GlobalObserver.add(
-        createIncrementalTopTimeHandler(
-          ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
-          "ContentItem-meta",
-        ),
-      );
       blockKeywords("collection");
     } else if (location.pathname.includes("/pin/")) {
       // 想法 //
-      GlobalObserver.add(
-        createIncrementalTopTimeHandler(".ContentItem.PinItem", "ContentItem-meta"),
-      );
     } else if (
       ["/", "/hot", "/follow", "/column-square", "/ring-feeds"].includes(
         location.pathname,
@@ -303,9 +266,6 @@ function menu_switch(menu_status, Name, Tips) {
       }
 
       if (location.pathname !== "/column-square") {
-        GlobalObserver.add(
-          createIncrementalTopTimeHandler(".TopstoryItem", "ContentItem-meta"),
-        );
         addTypeTips();
         addToQuestion();
         if (location.pathname == "/") {

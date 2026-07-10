@@ -3,7 +3,7 @@
 // @name:zh-CN   知乎增强 Remake
 // @name:zh-TW   知乎增強 Remake
 // @name:ru      Улучшение Zhihu Remake
-// @version      4.0.7
+// @version      4.0.18
 // @author       wangkezun
 // @description  A more personalized Zhihu experience~
 // @description:zh-CN  移除登录弹窗、屏蔽指定类别（视频、盐选、文章、想法、关注[赞同/关注了XX]等）、屏蔽低赞/低评回答、屏蔽用户、屏蔽关键词、默认收起回答、快捷收起回答/评论（左键两侧）、快捷回到顶部（右键两侧）、区分问题文章、移除高亮链接、净化搜索热门、净化标题消息、展开问题描述、显示问题作者、默认高清原图（无水印）、置顶显示时间、完整问题时间、直达问题按钮、默认站外直链...
@@ -135,37 +135,6 @@ function menu_setting(title, tips, children) {
     };
   });
 }
-
-// 全局统一 MutationObserver 管理器（合并所有 document 级 childList+subtree 观察器）
-const GlobalObserver = (function () {
-  const handlers = new Set();
-  let observer = null;
-
-  function init() {
-    if (observer) return;
-    observer = new MutationObserver((mutations) => {
-      for (const handler of handlers) {
-        try {
-          handler(mutations);
-        } catch (e) {
-          console.warn("GlobalObserver error:", e);
-        }
-      }
-    });
-    observer.observe(document, { childList: true, subtree: true });
-  }
-
-  return {
-    add(handler) {
-      handlers.add(handler);
-      if (!observer) init();
-      return handler;
-    },
-    remove(handler) {
-      handlers.delete(handler);
-    },
-  };
-})();
 
 // URL 变化事件管理器（避免重复注册 urlchange 监听器）
 const UrlChangeManager = (function () {
@@ -450,6 +419,22 @@ function shouldBlock(item, upvoteMin, commentMin) {
   return false
 }
 
+const SELECTOR$6 = '.List-item, .Card.TopstoryItem';
+
+function getPageType() {
+  if (location.pathname.includes('/question/')) return 'question'
+  if (location.pathname === '/follow') return 'follow'
+  return 'index'
+}
+
+function process$6(item) {
+  const type = getPageType();
+  if (shouldBlock(item, getUpvoteMin(type), getCommentMin(type))) {
+    item.hidden = true;
+    item.style.display = 'none';
+  }
+}
+
 function makeProcessor(type) {
   const upvoteMin = getUpvoteMin(type);
   const commentMin = getCommentMin(type);
@@ -486,6 +471,7 @@ function isBlockedAuthor(contentItem) {
 const SELECTOR$5 = '.ContentItem.AnswerItem, .ContentItem.ArticleItem';
 
 function process$5(item) {
+  if (!menu_value('menu_blockUsers')) return
   if (isBlockedAuthor(item)) {
     const card = item.closest('.Card, .List-item, .TopicFeedItem');
     if (card) card.hidden = true;
@@ -495,6 +481,7 @@ function process$5(item) {
 const SELECTOR_COMMENT$1 = 'a[href^="https://www.zhihu.com/people/"]>img.Avatar[alt][loading]';
 
 function processComment$1(img) {
+  if (!menu_value('menu_blockUsers')) return
   const users = getUsers();
   if (!users.length) return
   if (users.includes(img.alt)) {
@@ -630,6 +617,7 @@ function customBlockKeywords() {
 const SELECTOR_TITLE = 'h2.ContentItem-title meta[itemprop="name"], meta[itemprop="headline"], a[data-za-detail-view-id]';
 
 function processTitle(item) {
+  if (!menu_value('menu_blockKeywords')) return
   const keywords = getKeywords();
   if (!keywords.length) return
   const text = (item.content || item.textContent).toLowerCase();
@@ -645,17 +633,18 @@ function processTitle(item) {
 const SELECTOR_COMMENT = '.CommentContent';
 
 function processComment(content) {
+  if (!menu_value('menu_blockKeywords') || !menu_value('menu_blockKeywordsComment')) return
   const keywords = getKeywords();
   if (!keywords.length) return
   let text = content.textContent.toLowerCase();
   content.querySelectorAll('img.sticker[alt]').forEach(img => { text += img.alt.toLowerCase(); });
   for (const kw of keywords) {
     if (text.includes(kw)) {
-      const originalNodes = Array.from(content.childNodes).map(n => n.cloneNode(true));
+      const originalContent = document.createDocumentFragment();
+      while (content.firstChild) originalContent.appendChild(content.firstChild);
       content.onclick = (e) => {
         if (e.target === content && content.textContent === '[该评论已屏蔽，可点击显示]') {
-          content.textContent = '';
-          originalNodes.forEach(n => content.appendChild(n));
+          content.replaceChildren(originalContent);
           content.onclick = null;
         }
       };
@@ -681,6 +670,37 @@ function blockKeywords(type) {
   }
 }
 
+// 全局统一 MutationObserver 管理器（合并所有 document 级 childList+subtree 观察器）
+const GlobalObserver = (function () {
+  const handlers = new Set();
+  let observer = null;
+
+  function init() {
+    if (observer) return;
+    observer = new MutationObserver((mutations) => {
+      for (const handler of handlers) {
+        try {
+          handler(mutations);
+        } catch (e) {
+          console.warn("GlobalObserver error:", e);
+        }
+      }
+    });
+    observer.observe(document, { childList: true, subtree: true });
+  }
+
+  return {
+    add(handler) {
+      handlers.add(handler);
+      if (!observer) init();
+      return handler;
+    },
+    remove(handler) {
+      handlers.delete(handler);
+    },
+  };
+})();
+
 function blockHotOther() {
   if (!menu_value('menu_blockTypeLiveHot')) return
   const isQuestion = (hotItem) => {
@@ -693,17 +713,32 @@ function blockHotOther() {
       if (rank) rank.innerText = i + 1;
     });
   };
-  const block = () => {
-    document.querySelectorAll('.HotList-list .HotItem').forEach(item => {
-      if (!isQuestion(item)) item.remove();
-    });
-    fixRank();
+  const processItem = (item) => {
+    if (!isQuestion(item)) item.remove();
   };
-  block();
+  document.querySelectorAll('.HotList-list .HotItem').forEach(processItem);
+  fixRank();
+
+  let rankUpdatePending = false;
+  const scheduleRankUpdate = () => {
+    if (rankUpdatePending) return
+    rankUpdatePending = true;
+    queueMicrotask(() => {
+      rankUpdatePending = false;
+      fixRank();
+    });
+  };
+
   GlobalObserver.add((mutations) => {
     for (const m of mutations) {
       for (const n of m.addedNodes) {
-        if (n.nodeType === 1 && n.classList?.contains('HotItem')) block();
+        if (n.nodeType !== Node.ELEMENT_NODE) continue
+        const items = n.matches?.('.HotList-list .HotItem')
+          ? [n, ...n.querySelectorAll('.HotList-list .HotItem')]
+          : n.querySelectorAll?.('.HotList-list .HotItem');
+        if (!items?.length) continue
+        items.forEach(processItem);
+        scheduleRankUpdate();
       }
     }
   });
@@ -767,6 +802,7 @@ const SELECTOR$4 = 'h2.ContentItem-title a:not(.zhihu_e_toQuestion), a.KfeCollec
 const SELECTOR_YANXUAN = '.List-item, .Card.AnswerCard';
 
 function processYanXuan(item) {
+  if (!menu_value('menu_blockYanXuan')) return
   if (item.querySelector('.KfeCollection-AnswerTopCard-Container, .KfeCollection-PurchaseBtn')) {
     item.hidden = true;
   }
@@ -840,6 +876,7 @@ function cleanSearch() {
   if (!menu_value("menu_cleanSearch")) return;
 
   const el = document.querySelector(".SearchBar-input > input");
+  if (!el) return;
   const observer = new MutationObserver((mutationsList) => {
     if (
       mutationsList[0].attributeName === "placeholder" &&
@@ -980,23 +1017,13 @@ function getUTC8(t) {
   return _utc8Formatter.format(t).replace(/\//g, "-");
 }
 
-function createIncrementalTopTimeHandler(css, classs) {
-  return function (mutations) {
-    for (const mutation of mutations) {
-      for (const node of mutation.addedNodes) {
-        if (node.nodeType !== Node.ELEMENT_NODE) continue;
-        if (node.matches?.(css)) topTime_processItem(node, classs);
-        const items = node.querySelectorAll?.(css);
-        if (items) for (const item of items) topTime_processItem(item, classs);
-      }
-    }
-  };
-}
-
 const SELECTOR$2 = '.ContentItem.AnswerItem, .ContentItem.ArticleItem, .TopstoryItem, .PinItem';
 
 function process$2(item) {
-  topTime_processItem(item, 'ContentItem-meta');
+  const metaClass = item.querySelector('.SearchItem-meta')
+    ? 'SearchItem-meta'
+    : 'ContentItem-meta';
+  topTime_processItem(item, metaClass);
 }
 
 function init$3() {
@@ -1062,7 +1089,7 @@ a.zhihu_e_toQuestion {font-size: 13px !important;font-weight: normal !important;
   ;(document.head || document.documentElement).appendChild(el);
 }
 
-class DomDispatcher {
+class DomDispatcherManager {
   constructor() {
     this._processors = new Map();
     this._observer = null;
@@ -1107,7 +1134,13 @@ class DomDispatcher {
           for (const el of matches) {
             for (const [sel, fns] of this._processors) {
               if (el.matches(sel)) {
-                for (const fn of fns) fn(el);
+                for (const fn of fns) {
+                  try {
+                    fn(el);
+                  } catch (e) {
+                    console.warn('DomDispatcher processor error:', e);
+                  }
+                }
               }
             }
           }
@@ -1128,10 +1161,25 @@ class DomDispatcher {
   }
 }
 
+// 全局只需要一个 DOM 分发器。导出单例，避免调用方误把实例方法当作静态方法。
+const DomDispatcher = new DomDispatcherManager();
+
 const SELECTOR$1 = 'a.external[href*="link.zhihu.com/?target="], a.LinkCard[href*="link.zhihu.com/?target="]:not(.MCNLinkCard):not(.ZVideoLinkCard):not(.ADLinkCardContainer)';
 
 function process$1(a) {
-  a.href = decodeURIComponent(a.href.substring(a.href.indexOf('link.zhihu.com/?target=') + 23));
+  try {
+    const redirect = new URL(a.href);
+    if (redirect.hostname !== 'link.zhihu.com') return
+
+    const targetValue = redirect.searchParams.get('target');
+    if (!targetValue) return
+
+    const target = new URL(targetValue);
+    if (target.protocol !== 'http:' && target.protocol !== 'https:') return
+    a.href = target.href;
+  } catch (e) {
+    // 链接格式或编码异常时保留知乎原始跳转链接。
+  }
 }
 
 function init$2() {
@@ -1162,6 +1210,7 @@ function init() {
   DomDispatcher.register(SELECTOR$5, process$5);
   DomDispatcher.register(SELECTOR_COMMENT$1, processComment$1);
   DomDispatcher.register(SELECTOR_YANXUAN, processYanXuan);
+  DomDispatcher.register(SELECTOR$6, process$6);
 
   DomDispatcher.start();
 
@@ -1171,9 +1220,6 @@ function init() {
   init$4();
   initYanXuan();
 
-  makeProcessor('Answer')();
-  makeProcessor('Article')();
-  makeProcessor('Pin')();
 }
 
 function question_author() {
@@ -1604,9 +1650,6 @@ function menu_switch(menu_status, Name, Tips) {
         blockType("question");
         enableDefaultCollapse();
       }
-      GlobalObserver.add(
-        createIncrementalTopTimeHandler(".ContentItem.AnswerItem", "ContentItem-meta"),
-      );
       setTimeout(function () {
         question_time();
         question_author();
@@ -1614,12 +1657,6 @@ function menu_switch(menu_status, Name, Tips) {
       questionInvitation();
     } else if (location.pathname === "/search") {
       //          搜索结果页 //
-      GlobalObserver.add(
-        createIncrementalTopTimeHandler(
-          ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
-          "SearchItem-meta",
-        ),
-      );
       addTypeTips();
       addToQuestion();
       blockUsers();
@@ -1631,12 +1668,6 @@ function menu_switch(menu_status, Name, Tips) {
         location.pathname.includes("/hot") ||
         location.href.includes("/top-answers")
       ) {
-        GlobalObserver.add(
-          createIncrementalTopTimeHandler(
-            ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
-            "ContentItem-meta",
-          ),
-        );
         addTypeTips();
         addToQuestion();
         blockUsers();
@@ -1650,12 +1681,6 @@ function menu_switch(menu_status, Name, Tips) {
       //    专栏 //
       setTimeout(function () {
         addCollapseAllButton();
-        GlobalObserver.add(
-          createIncrementalTopTimeHandler(
-            ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
-            "ContentItem-meta",
-          ),
-        );
         blockUsers();
       }, 300);
     } else if (
@@ -1667,31 +1692,14 @@ function menu_switch(menu_status, Name, Tips) {
         addTypeTips();
         addToQuestion();
       }
-      GlobalObserver.add(
-        createIncrementalTopTimeHandler(
-          ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
-          "ContentItem-meta",
-        ),
-      );
       blockUsers();
       blockKeywords("people");
     } else if (location.pathname.includes("/collection/")) {
       // 收藏夹 //
       addTypeTips();
       addToQuestion();
-      GlobalObserver.add(
-        createIncrementalTopTimeHandler(
-          ".ContentItem.AnswerItem, .ContentItem.ArticleItem",
-          "ContentItem-meta",
-        ),
-      );
       blockKeywords("collection");
-    } else if (location.pathname.includes("/pin/")) {
-      // 想法 //
-      GlobalObserver.add(
-        createIncrementalTopTimeHandler(".ContentItem.PinItem", "ContentItem-meta"),
-      );
-    } else if (
+    } else if (location.pathname.includes("/pin/")) ; else if (
       ["/", "/hot", "/follow", "/column-square", "/ring-feeds"].includes(
         location.pathname,
       )
@@ -1712,9 +1720,6 @@ function menu_switch(menu_status, Name, Tips) {
       }
 
       if (location.pathname !== "/column-square") {
-        GlobalObserver.add(
-          createIncrementalTopTimeHandler(".TopstoryItem", "ContentItem-meta"),
-        );
         addTypeTips();
         addToQuestion();
         if (location.pathname == "/") {

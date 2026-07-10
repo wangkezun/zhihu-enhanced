@@ -37,6 +37,15 @@ jobs:
           fi
           echo "Version validated: $TAG_VERSION"
 
+      - name: Commit built file and retag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f dist/Zhihu-Enhanced.user.js
+          git commit -m "build: ${GITHUB_REF_NAME}"
+          git tag -f "${GITHUB_REF_NAME}"
+          git push origin "${GITHUB_REF_NAME}" --force
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:

@@ -30,7 +30,7 @@ jobs:
       - name: Validate version
         run: |
           TAG_VERSION="${GITHUB_REF#refs/tags/v}"
-          META_VERSION=$(grep -oP '(?<=@version\s)\S+' src/meta.txt)
+          META_VERSION=$(awk '/@version/{print $3; exit}' src/meta.txt)
           if [ "$TAG_VERSION" != "$META_VERSION" ]; then
             echo "ERROR: Tag version ($TAG_VERSION) != meta.txt version ($META_VERSION)"
             exit 1

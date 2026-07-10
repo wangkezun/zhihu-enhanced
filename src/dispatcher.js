@@ -43,7 +43,13 @@ class DomDispatcherManager {
           for (const el of matches) {
             for (const [sel, fns] of this._processors) {
               if (el.matches(sel)) {
-                for (const fn of fns) fn(el)
+                for (const fn of fns) {
+                  try {
+                    fn(el)
+                  } catch (e) {
+                    console.warn('DomDispatcher processor error:', e)
+                  }
+                }
               }
             }
           }

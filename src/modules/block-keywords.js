@@ -99,6 +99,7 @@ export function customBlockKeywords() {
 export const SELECTOR_TITLE = 'h2.ContentItem-title meta[itemprop="name"], meta[itemprop="headline"], a[data-za-detail-view-id]'
 
 export function processTitle(item) {
+  if (!menu_value('menu_blockKeywords')) return
   const keywords = getKeywords()
   if (!keywords.length) return
   const text = (item.content || item.textContent).toLowerCase()
@@ -114,6 +115,7 @@ export function processTitle(item) {
 export const SELECTOR_COMMENT = '.CommentContent'
 
 export function processComment(content) {
+  if (!menu_value('menu_blockKeywords') || !menu_value('menu_blockKeywordsComment')) return
   const keywords = getKeywords()
   if (!keywords.length) return
   let text = content.textContent.toLowerCase()

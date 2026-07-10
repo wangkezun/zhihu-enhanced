@@ -16,6 +16,7 @@ function isBlockedAuthor(contentItem) {
 export const SELECTOR = '.ContentItem.AnswerItem, .ContentItem.ArticleItem'
 
 export function process(item) {
+  if (!menu_value('menu_blockUsers')) return
   if (isBlockedAuthor(item)) {
     const card = item.closest('.Card, .List-item, .TopicFeedItem')
     if (card) card.hidden = true
@@ -25,6 +26,7 @@ export function process(item) {
 export const SELECTOR_COMMENT = 'a[href^="https://www.zhihu.com/people/"]>img.Avatar[alt][loading]'
 
 export function processComment(img) {
+  if (!menu_value('menu_blockUsers')) return
   const users = getUsers()
   if (!users.length) return
   if (users.includes(img.alt)) {

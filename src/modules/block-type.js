@@ -58,6 +58,7 @@ export const SELECTOR = 'h2.ContentItem-title a:not(.zhihu_e_toQuestion), a.KfeC
 export const SELECTOR_YANXUAN = '.List-item, .Card.AnswerCard'
 
 export function processYanXuan(item) {
+  if (!menu_value('menu_blockYanXuan')) return
   if (item.querySelector('.KfeCollection-AnswerTopCard-Container, .KfeCollection-PurchaseBtn')) {
     item.hidden = true
   }
@@ -66,4 +67,3 @@ export function processYanXuan(item) {
 export function initYanXuan() {
   document.querySelectorAll(SELECTOR_YANXUAN).forEach(processYanXuan)
 }
-

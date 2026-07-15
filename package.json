@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "build": "rollup -c",
-    "dev": "rollup -c -w"
+    "dev": "rollup -c -w",
+    "release": "node scripts/create-release.js",
+    "test": "node --test"
   },
   "devDependencies": {
     "rollup": "^4.60.0"

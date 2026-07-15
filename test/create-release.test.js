@@ -217,6 +217,38 @@ test('已有 tag 不会被覆盖且版本必须递增', () => {
   }
 })
 
+test('构建期间远端出现更高 tag 时不会推送较低版本', () => {
+  const fixture = createFixture()
+  try {
+    const packagePath = join(fixture.repo, 'package.json')
+    const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'))
+    packageJson.scripts.build =
+      'node build.js && git tag --no-sign v2.0.0 && git push origin refs/tags/v2.0.0'
+    write(packagePath, JSON.stringify(packageJson, null, 2) + '\n')
+    git(fixture.repo, 'add', 'package.json')
+    git(fixture.repo, 'commit', '-m', 'simulate concurrent release')
+    git(fixture.repo, 'push', 'origin', 'main')
+
+    const result = spawnSync(process.execPath, [releaseScript, 'v1.0.1'], {
+      cwd: fixture.repo,
+      encoding: 'utf8',
+    })
+
+    assert.notEqual(result.status, 0)
+    assert.match(result.stderr, /must be greater than v2\.0\.0/)
+    assert.notEqual(
+      run('git', ['ls-remote', fixture.remote, 'refs/tags/v2.0.0'], fixture.repo),
+      '',
+    )
+    assert.equal(
+      run('git', ['ls-remote', fixture.remote, 'refs/tags/v1.0.1'], fixture.repo),
+      '',
+    )
+  } finally {
+    rmSync(fixture.root, { recursive: true, force: true })
+  }
+})
+
 test('构建失败不会创建或推送 tag', () => {
   const fixture = createFixture()
   try {

@@ -77,12 +77,7 @@ function fetchRemoteTagCommit(repo, remote, tag) {
   return git(repo, ['rev-parse', 'FETCH_HEAD^{}'])
 }
 
-export function createRelease(tag, { cwd = process.cwd(), remote = 'origin' } = {}) {
-  const version = versionFromTag(tag)
-  const repo = git(cwd, ['rev-parse', '--show-toplevel'])
-  const head = verifyCleanMain(repo, remote)
-  const localTags = git(repo, ['tag', '--list']).split('\n').filter(Boolean)
-  const remoteTags = listRemoteTags(repo, remote)
+function validateReleaseTag(tag, localTags, remoteTags) {
   if (localTags.includes(tag) || remoteTags.includes(tag)) {
     throw new Error(`Release tag already exists: ${tag}`)
   }
@@ -91,6 +86,16 @@ export function createRelease(tag, { cwd = process.cwd(), remote = 'origin' } = 
   if (previousTag && compareReleaseTags(tag, previousTag) <= 0) {
     throw new Error(`Release tag ${tag} must be greater than ${previousTag}`)
   }
+  return previousTag
+}
+
+export function createRelease(tag, { cwd = process.cwd(), remote = 'origin' } = {}) {
+  const version = versionFromTag(tag)
+  const repo = git(cwd, ['rev-parse', '--show-toplevel'])
+  const head = verifyCleanMain(repo, remote)
+  let localTags = git(repo, ['tag', '--list']).split('\n').filter(Boolean)
+  let remoteTags = listRemoteTags(repo, remote)
+  let previousTag = validateReleaseTag(tag, localTags, remoteTags)
 
   const tempRoot = mkdtempSync(join(tmpdir(), 'zhihu-release-'))
   const worktree = join(tempRoot, 'worktree')
@@ -114,6 +119,10 @@ export function createRelease(tag, { cwd = process.cwd(), remote = 'origin' } = 
     if (metadataVersion(artifact) !== version) {
       throw new Error(`Built artifact version must equal ${version}`)
     }
+
+    localTags = git(repo, ['tag', '--list']).split('\n').filter(Boolean)
+    remoteTags = listRemoteTags(repo, remote)
+    previousTag = validateReleaseTag(tag, localTags, remoteTags)
 
     const indexEnv = { ...process.env, GIT_INDEX_FILE: indexPath }
     git(repo, ['read-tree', head], { env: indexEnv })

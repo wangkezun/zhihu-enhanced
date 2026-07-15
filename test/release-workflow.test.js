@@ -13,9 +13,12 @@ test('Release 工作流测试、构建、校验并上传固定资产', () => {
   assert.match(workflow, /run:\s*npm test/)
   assert.match(workflow, /run:\s*npm run build/)
   assert.match(workflow, /cmp -s Zhihu-Enhanced\.user\.js dist\/Zhihu-Enhanced\.user\.js/)
-  assert.match(workflow, /gh release view "\$GITHUB_REF_NAME"/)
+  assert.match(
+    workflow,
+    /gh release create "\$GITHUB_REF_NAME" dist\/Zhihu-Enhanced\.user\.js --verify-tag --generate-notes/,
+  )
   assert.match(workflow, /dist\/Zhihu-Enhanced\.user\.js/)
-  assert.match(workflow, /softprops\/action-gh-release@/)
+  assert.doesNotMatch(workflow, /gh release view|softprops\/action-gh-release/)
 })
 
 test('Release 工作流不提交、推送或移动 tag', () => {

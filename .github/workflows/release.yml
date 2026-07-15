@@ -51,17 +51,7 @@ jobs:
           fi
           echo "Tagged artifact matches the CI build"
 
-      - name: Ensure release does not exist
+      - name: Create Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            echo "ERROR: Release $GITHUB_REF_NAME already exists"
-            exit 1
-          fi
-
-      - name: Create Release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
-        with:
-          files: dist/Zhihu-Enhanced.user.js
-          generate_release_notes: true
+        run: gh release create "$GITHUB_REF_NAME" dist/Zhihu-Enhanced.user.js --verify-tag --generate-notes

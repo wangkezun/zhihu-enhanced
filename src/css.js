@@ -39,7 +39,7 @@ export function injectCSS() {
 
   // 非悬浮操作栏会通过负边距向卡片两侧延伸；深色主题下不同底色会露出凸边
   parts.push(`
-.ContentItem-actions:not(.is-fixed) {background-color: transparent !important;}
+html[data-theme="dark"] .ContentItem-actions:not(.is-fixed) {background-color: transparent !important;}
 `)
 
   // 直达问题按钮样式

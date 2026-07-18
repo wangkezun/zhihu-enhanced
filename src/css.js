@@ -37,6 +37,11 @@ export function injectCSS() {
 .CornerButton{margin-bottom:8px !important;}.CornerButtons{bottom:45px !important;}
 `)
 
+  // 非悬浮操作栏会通过负边距向卡片两侧延伸；深色主题下不同底色会露出凸边
+  parts.push(`
+.RichContent-actions:not(.is-fixed) {background-color: transparent !important;}
+`)
+
   // 直达问题按钮样式
   parts.push(`
 a.zhihu_e_toQuestion {font-size: 13px !important;font-weight: normal !important;padding: 1px 6px 0 !important;border-radius: 2px !important;display: inline-block !important;vertical-align: top !important;margin-top: 4px !important;height: 20.67px !important;line-height: 20.67px !important;}
